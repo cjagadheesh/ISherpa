@@ -92,45 +92,6 @@ India's **Rs 600 Billion SME IPO market** is constrained by paperwork and proces
 +---------------------------------------------------------------------------------+
 ```
 
----
-
-## Quick Start
-
-### Docker (Recommended — Zero Configuration)
-
-```bash
-docker compose up
-```
-
-- **Frontend** → `http://localhost:5173`
-- **Backend API** → `http://localhost:8000` (health: `/health`)
-- **No API keys required** — runs fully offline with local rule-based extraction, mocked blockchain, and local session state.
-
-> **First build:** approximately 5–8 minutes. PaddleOCR, sentence-transformers, and ChromaDB models are cached into the image at build time — every subsequent start is instant and fully offline.
-
-```bash
-docker compose up          # start
-docker compose down        # stop (data persists in named volumes)
-docker compose up --build  # rebuild after .env changes
-```
-
-### Manual Setup
-
-```bash
-# Backend
-cd backend
-python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
-
-# Frontend (second terminal)
-cd ../frontend && npm install && npm run dev
-```
-
-Open `http://localhost:5173` — the demo session pre-loads with no login required.
-
----
-
 ## Blockchain & Trust Architecture
 
 IPO Sherpa integrates a **Polygon Amoy (EVM-compatible testnet) smart contract** (`SEBIDocumentRegistry`) to provide cryptographically verifiable tamper-evidence for every document, prospectus version, and audit snapshot. No document content ever leaves your infrastructure — only SHA-256 cryptographic digests are submitted on-chain.
