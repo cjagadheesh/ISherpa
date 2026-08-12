@@ -1004,16 +1004,6 @@ IPO Sherpa is not a substitute for a SEBI-registered Category I Merchant Banker.
 
 No DRHP can leave IPO Sherpa without a merchant banker explicit certification of every section. This is a hard architectural constraint — there is no API endpoint, no admin override, and no configuration flag that bypasses it.
 
----
-
-## Demo Resources
-
-| Resource | Link |
-|---|---|
-| Demo Script (10-minute walkthrough) | [DEMO_SCRIPT.md](./DEMO_SCRIPT.md) |
-| Todo / Roadmap | [TODO.md](./TODO.md) |
-
----
 
 *Built for SEBI TechSprint 2026 — Making Indian Capital Markets More Accessible, Transparent, and Trustworthy.*
 
