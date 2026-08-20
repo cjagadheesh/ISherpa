@@ -1,16 +1,17 @@
-# IPO Sherpa — SEBI SME IPO Draft Generator & Compliance Auditor
-
 <div align="center">
+
+# IPO Sherpa
+### SEBI SME IPO Draft Generator & Compliance Auditor
 
 [![SEBI TechSprint](https://img.shields.io/badge/SEBI-TechSprint%202026-1a2e6b?style=for-the-badge)](https://www.sebi.gov.in)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
 [![Blockchain](https://img.shields.io/badge/Blockchain-Polygon%20Amoy-8247E5?style=for-the-badge)](https://polygon.technology)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)](https://docker.com)
-[![Tests](https://img.shields.io/badge/Tests-47%20Passing-brightgreen?style=for-the-badge)](./backend/tests)
+[![Tests](https://img.shields.io/badge/Tests-75%20Passing-brightgreen?style=for-the-badge)](./backend/tests)
 [![License](https://img.shields.io/badge/License-MIT-gray?style=for-the-badge)](./LICENSE)
 
-**The only platform that takes an Indian SME from "we are thinking about an IPO" to a disclosure-ready, banker-certified, blockchain-anchored Draft Red Herring Prospectus — in hours, not months.**
+**Takes an Indian SME from "we are thinking about an IPO" to a disclosure-ready, banker-certified, blockchain-anchored Draft Prospectus — in hours, not months.**
 
 </div>
 
@@ -23,50 +24,63 @@
 >
 > **[Access Sample Document Folder on Google Drive](https://drive.google.com/drive/folders/1t95ZwBJa-GAXgzpivNXt_x9aPi-_VsgP?usp=sharing)**
 >
-> Upload these documents through the Document Vault to trigger OCR extraction, contradiction detection, hallucination guard, and DRHP generation. No account or API key is required to run the demo.
+> Upload these documents through the Document Vault to trigger OCR extraction, contradiction detection, hallucination guard, and prospectus generation. No account or API key required.
 
 ---
 
 ## Table of Contents
 
-- [The Problem We Solve](#the-problem-we-solve)
+- [The Problem](#the-problem)
+- [Why This Wins](#why-this-wins)
 - [Platform Overview](#platform-overview)
-- [Quick Start](#quick-start)
-- [Blockchain & Trust Architecture](#blockchain--trust-architecture)
-- [Retrieval-Augmented Generation](#retrieval-augmented-generation)
-- [NLP & Machine Learning Pipeline](#nlp--machine-learning-pipeline)
-- [Automated Circular Monitoring](#automated-circular-monitoring)
-- [OCR & Document Intelligence](#ocr--document-intelligence)
-- [AI/ML Feature Index A-Z](#aiml-feature-index-az)
-- [Automated Regulatory Compliance](#automated-regulatory-compliance)
-- [Enterprise-Grade Security](#enterprise-grade-security)
-- [Frontend Architecture](#frontend-architecture)
 - [System Architecture](#system-architecture)
+- [Trust & Verification Layer](#trust--verification-layer)
+- [AI & Document Intelligence](#ai--document-intelligence)
+- [Compliance Engine](#compliance-engine)
+- [AI/ML Feature Index A–Z](#aiml-feature-index-az)
+- [Frontend](#frontend)
+- [Security](#security)
 - [Project Structure](#project-structure)
-- [Environment Variables](#environment-variables)
 - [Testing](#testing)
-- [Docker Deployment](#docker-deployment)
-- [Competitive Differentiation](#competitive-differentiation)
+- [Deployment Architecture](#deployment-architecture)
 - [SEBI TechSprint Problem Statement Mapping](#sebi-techsprint-problem-statement-mapping)
 
 ---
 
-## The Problem We Solve
+## The Problem
 
-India's **Rs 600 Billion SME IPO market** is constrained by paperwork and process complexity. The average SEBI SME Draft Red Herring Prospectus (DRHP) requires **4–6 months**, involves **10+ statutory documents**, and demands simultaneous legal, financial, and merchant banking expertise — costing lakhs of rupees before a single rupee is raised.
+India's **₹600 Billion SME IPO market** is bottlenecked by paperwork, not opportunity. A SEBI SME Draft Prospectus takes **4–6 months**, spans **10+ statutory documents**, and needs legal, financial, and merchant-banking expertise in parallel — before a single rupee is raised.
 
 > Founders abandon viable IPOs. Regulators receive incomplete filings. Investors lose access to quality SME opportunities.
-
-**IPO Sherpa eliminates this barrier** with an end-to-end AI compliance workspace:
 
 | Without IPO Sherpa | With IPO Sherpa |
 |---|---|
 | 4–6 months of drafting | Hours to a disclosure-ready draft |
-| 10+ disconnected document workflows | Unified Document Vault with auto-extraction |
-| Missed SEBI ICDR clauses discovered at filing | 55 live SEBI requirements tracked in real time |
+| 10+ disconnected document workflows | One Document Vault, auto-extracted |
+| Missed SEBI ICDR clauses found at filing | 55 live requirements tracked in real time |
 | Hallucinated LLM content in legal documents | Digit-level hallucination guard on every number |
-| No audit trail, no tamper-evidence | Immutable blockchain anchoring on Polygon Amoy |
-| Banker reviews happen in silos | Structured section-by-section certification workflow |
+| No audit trail, no tamper-evidence | Blockchain-anchored, structurally-verified documents |
+| Banker reviews happen in silos | Section-by-section certification workflow |
+
+---
+
+## Why This Wins
+
+**Every claim below is backed by a passing test or a verifiable code path — not a slide.**
+
+- **Real OCR, not just an LLM wrapper.** A 4-tier extraction pipeline (`pdfplumber` → `PaddleOCR` → `pytesseract` → regex) handles the scanned, photographed, and photocopied statutory documents that are the norm in Indian SME filings — not just clean text-layer PDFs. A 3-tier structured-table extractor (`camelot` stream → `camelot` lattice → `tabula`) prevents financial figures from being paired with the wrong row/column label.
+
+- **Hallucinations are verified out, not prompted away.** Every LLM-drafted number is extracted, unit-normalized, and traced back to a real value already present in the session before it's allowed to reach a document. If a number can't be verified, it's flagged or the section falls back to a safe template — never silently trusted.
+
+- **Two independent layers of tamper-evidence, not one.** Every document is SHA-256 hashed and anchored to a public Polygon Amoy smart contract — independently verifiable by anyone, not just this app's own database. Alongside that, a dependency-free structural forensics pass checks each PDF's own bytes for incremental-save markers, suspicious modification dates, and known editor-tool fingerprints — catching signs of *prior* tampering that an external hash anchor can't see, since it only proves nothing changed *after* upload.
+
+- **Earnings quality, not just field validation.** Beyond 20+ statutory cross-document checks (name mismatches, date logic, capital-structure math), the engine flags the same signals a merchant banker's own sniff-test would: operating cash flow that doesn't back up reported profit, and trade receivables growing faster than revenue — real earnings-quality red flags, not just format validation.
+
+- **The merchant banker's statutory role is architecturally un-bypassable.** No export endpoint, admin flag, or configuration switch skips section-by-section banker certification. This was a deliberate constraint, not an oversight — the platform accelerates the drafting stage, it does not replace the intermediary SEBI requires.
+
+- **Resilient by design under real free-tier constraints.** The LLM layer pools multiple Groq keys in round-robin rotation (not just failover-on-error), so concurrent document extraction spreads across keys instead of serializing behind one rate limit. Blockchain sealing runs as a background task — a slow or failed testnet transaction can never block or break a document download.
+
+- **75 automated tests, not a demo that only works once.** Isolated, deterministic, offline-runnable pytest coverage across every consistency check, the hallucination guard, the OCR forensics module, and the LLM key-pool's behavior under concurrency — verified with real concurrent-thread tests, not just single-call happy paths.
 
 ---
 
@@ -80,621 +94,17 @@ India's **Rs 600 Billion SME IPO market** is constrained by paperwork and proces
 |  ─────────────               ─────────               ──────────                 |
 |  10 doc types accepted       PaddleOCR + LLM         Polygon Amoy anchoring     |
 |  4-tier OCR pipeline         NLP red-flag scan        W3C Verifiable Credentials|
-|  Table-aware extraction      Hallucination guard      Append-only audit log     |
-|  W3C VC per document         RAG over ICDR corpus     SHA-256 tamper detection  |
+|  Table-aware extraction      Hallucination guard      Structural PDF forensics  |
+|  W3C VC per document         RAG over ICDR corpus     Append-only audit log     |
 |                                                                                 |
 |  COMPLIANCE ENGINE           DRAFTING WIZARD          BANKER WORKFLOW           |
 |  ─────────────               ─────────────────        ──────────────            |
-|  55 SEBI ICDR requirements   106 fields, 21 sections  Per-section certification |
+|  55 SEBI ICDR requirements   107 fields, 21 sections  Per-section certification |
 |  20+ contradiction checks    4 sector KPI templates   Export gate (no bypass)   |
-|  Live filing-readiness score Auto-fill from OCR       Due-diligence Form A      |
+|  Earnings-quality signals    Auto-fill from OCR       Due-diligence Form A      |
 |  Automated circular alerts   AI risk-factor drafting  Peer comparison metrics   |
 +---------------------------------------------------------------------------------+
 ```
-
-## Blockchain & Trust Architecture
-
-IPO Sherpa integrates a **Polygon Amoy (EVM-compatible testnet) smart contract** (`SEBIDocumentRegistry`) to provide cryptographically verifiable tamper-evidence for every document, prospectus version, and audit snapshot. No document content ever leaves your infrastructure — only SHA-256 cryptographic digests are submitted on-chain.
-
-### Smart Contract Functions
-
-| Function | Trigger | On-Chain Data |
-|---|---|---|
-| `anchorDocument()` | Document upload | SHA-256(document bytes), timestamp, doc type |
-| `sealProspectus()` | Prospectus version generation | SHA-256(DOCX bytes), version number |
-| `logAudit()` | Validation run | SHA-256(audit snapshot), checks run, checks passed |
-| `verifyDocument()` | Public verification (permissionless) | Hash lookup, returns anchor timestamp |
-
-### On-Chain vs. Off-Chain Data Split
-
-| On-Chain (Polygon Amoy) | Off-Chain (Local / Supabase) |
-|---|---|
-| SHA-256 document hashes | Full document bytes |
-| Prospectus version hashes | Draft DOCX content |
-| Audit log snapshots | Detailed JSONL audit records |
-| Blockchain transaction IDs | User session state |
-
-### W3C Verifiable Credentials
-
-Every uploaded and verified document receives a **W3C v1.1 JSON-LD Verifiable Credential** issued by a DID anchored to the Polygon Amoy network:
-
-```json
-{
-  "@context": [
-    "https://www.w3.org/2018/credentials/v1",
-    "https://schema.sebi.gov.in/credentials/v1"
-  ],
-  "type": ["VerifiableCredential", "SEBIDocumentComplianceCredential"],
-  "issuer": {
-    "id": "did:polygon:amoy:0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
-    "name": "SEBI SME IPO Compliance Authority"
-  },
-  "credentialSubject": {
-    "document_type": "incorporation",
-    "verification_status": "AUTHENTICATED",
-    "sebi_compliance_score": 100,
-    "doc_hash": "0x4f2a..."
-  }
-}
-```
-
-### Blockchain Architecture
-
-```
-                     +------------------------------------+
-                     |   SEBIDocumentRegistry Contract    |
-                     |   (Polygon Amoy Testnet -- EVM)    |
-                     +----------------+-------------------+
-                                      |
-              +-----------------------+-----------------------+
-              |                       |                       |
-     anchorDocument()         sealProspectus()           logAudit()
-     SHA-256(doc_bytes)       SHA-256(docx_bytes)        SHA-256(audit_log)
-              |                       |                       |
-     +---------+---------+  +---------+---------+  +---------+---------+
-     | Document Uploaded |  | Prospectus        |  | Audit Snapshot    |
-     | W3C VC Issued     |  | Version Sealed    |  | On-Chain          |
-     +-------------------+  +-------------------+  +-------------------+
-```
-
-**Deterministic mock mode**: When no RPC endpoint or private key is configured, blockchain calls return deterministic mock responses prefixed with `[MOCK]` in logs — zero crashes, full functional parity for offline evaluation.
-
-**Privacy by design**: Documents never leave your infrastructure. Only cryptographic proofs go on-chain.
-
----
-
-## Retrieval-Augmented Generation
-
-The IPO Sherpa AI Copilot is not a generic LLM — it is a **regulation-grounded question-answering system** built on a curated SEBI ICDR corpus.
-
-### RAG Architecture
-
-```
-User Query
-    |
-    v
-+-------------------+        +---------------------------+
-| Query Encoder     |        | ChromaDB Vector Store     |
-| all-MiniLM-L6-v2  |------> | SEBI ICDR Chapter IX      |
-| 384-dim embedding |        | Cosine similarity search  |
-+-------------------+        +---------------------------+
-                                          |
-                              Top-K retrieved clauses
-                                          |
-                                          v
-                             +------------------------+
-                             | LLM Context Synthesis  |
-                             | (Groq / OpenAI /       |
-                             |  Anthropic / Ollama)   |
-                             +------------------------+
-                                          |
-                              Grounded response with
-                              citation IDs, URLs, and
-                              confidence scores
-```
-
-### RAG Technical Details
-
-| Component | Implementation |
-|---|---|
-| Vector store | ChromaDB persistent collection (`backend-chroma-db` Docker volume) |
-| Embedding model | `all-MiniLM-L6-v2` (384-dim, 80 MB, CPU-efficient) |
-| Retrieval method | Cosine similarity + TF-IDF hybrid scoring |
-| Corpus | Curated SEBI ICDR Chapter IX regulations (`sebi_icdr_corpus.py`) |
-| Grounding | Every answer includes `regulation_no`, `chapter`, `url`, `confidence` |
-| LLM layer | Provider-agnostic via `llm_client.py` (Groq / OpenAI / Anthropic / Ollama) |
-
-**Example interaction:**
-
-```
-Query:  "What is the minimum promoter contribution for an SME IPO?"
-RAG:    Retrieves ICDR Reg 236 (Chapter IX), confidence: 0.94
-LLM:    Synthesizes grounded answer with regulation citation
-Output: { regulation_no: "ICDR Reg 236", chapter: "IX", url: "...", confidence: 0.94 }
-```
-
-The vector store is seeded at container startup and persists across restarts via a named Docker volume — no re-indexing on every boot.
-
----
-
-## NLP & Machine Learning Pipeline
-
-### Semantic Embedding Engine
-
-The platform uses `sentence-transformers/all-MiniLM-L6-v2` (384-dimensional embeddings) for all semantic tasks:
-
-- Matching form field values against OCR-extracted text
-- Red-flag detection in narrative disclosures
-- RAG retrieval relevance scoring
-- Entity relationship disambiguation
-
-**Fallback**: `difflib.SequenceMatcher` is used when PyTorch / sentence-transformers are unavailable, preserving all functionality without GPU or heavy ML dependencies.
-
-### ML Feature Summary
-
-| Feature | Algorithm / Model | Purpose |
-|---|---|---|
-| Semantic field matching | `all-MiniLM-L6-v2` cosine similarity | Match form values against extracted text |
-| Red-flag detection | Semantic similarity + keyword rules | Detect vague or boilerplate disclosures |
-| Named entity recognition | Regex pipeline + sentence-transformers | Extract CIN, GSTIN, PAN, dates, director names |
-| Financial ratio anomaly detection | Sector-specific threshold comparison | Flag implausible financial metrics |
-| RAG retrieval | ChromaDB cosine + TF-IDF hybrid | Ground Copilot answers in ICDR regulations |
-| Hallucination detection | Numeric extraction + unit normalization | Verify every LLM-generated number against facts |
-| Risk factor generation | LLM (session-grounded, hallucination-guarded) | Draft issuer-specific risk disclosures |
-| Contradiction detection | Cross-document rule engine + semantic matching | Surface 20+ statutory inconsistencies |
-| Narrative summarization | Provider-agnostic LLM | Summarize business overview for Copilot |
-| Readability scoring | Flesch-Kincaid approximation | Score narrative quality for investor clarity |
-
-### NLP Red-Flag Scanner
-
-`nlp_analyzer.py` scans all narrative disclosures for investor-harmful patterns using **semantic similarity combined with rule-based detection**:
-
-| Flag Category | Example Detection | Severity |
-|---|---|---|
-| Vague language | "market leader", "rapidly growing" without citation | HIGH |
-| Generic boilerplate risk | Macro risks without company-specific impact figures | HIGH |
-| Missing litigation declaration | No affirmative nil/pending litigation statement | MEDIUM |
-| Unsubstantiated forward-looking claims | Revenue projections without stated basis | HIGH |
-| Promoter background gaps | Missing DIN/designation for promoter directors | MEDIUM |
-| Customer concentration risk | >30% revenue from single customer undisclosed | HIGH |
-
-Each flag includes **4-step chain-of-thought reasoning** with statutory rule citations. The scanner runs as a dedicated API surface (`POST /api/nlp/redflag`) and feeds into the Dashboard section risk scores.
-
-### Named Entity Recognition Pipeline
-
-`nlp_analyzer.py` extracts structured entities from unstructured statutory documents:
-
-- **Company identifiers**: CIN (regex-validated against MCA format), GSTIN (15-digit GST format), PAN/TAN
-- **Financial figures**: Amounts with unit disambiguation (Crore / Lakh / rupees, with normalization)
-- **Persons**: Promoter and KMP names with designation matching
-- **Dates**: Incorporation date, GST registration date, financial year ends
-- **Legal references**: Regulation citations, section numbers from Companies Act / GST Act / SEBI ICDR
-
-### Auto-Generated Risk Factors
-
-`POST /api/generate-risk-factors` uses session facts to draft **issuer-specific** risk factor disclosures:
-
-- Internal risks: operational, financial, management concentration
-- External risks: regulatory, market, competition
-- Each risk factor is grounded in real session data extracted from uploaded documents
-- Hallucination guard applied before every return — no unverified numbers pass through
-
----
-
-## Automated Circular Monitoring
-
-`sebi_circulars.py` implements a **live regulatory change alert pipeline** that monitors SEBI's official circular feed and surfaces session-specific compliance impacts automatically.
-
-### Processing Pipeline
-
-```
-SEBI Official Circular Feed
-          |
-          v
-+----------------------+
-| Circular Parser      |
-| - Circular number    |
-| - Effective date     |
-| - Affected rules     |
-+----------------------+
-          |
-          v
-+----------------------+
-| Session Impact Analyzer
-| - Compares circular  |
-|   scope against      |
-|   current session    |
-|   form data          |
-+----------------------+
-          |
-          v
-+----------------------+
-| RegulatoryAlertBanner|
-| (Frontend UI)        |
-| - Severity rating    |
-| - Affected sections  |
-| - Required actions   |
-+----------------------+
-```
-
-### Alert Structure
-
-```
-[HIGH] SEBI/HO/CFD/PoD-2/P/CIR/2026/014
-Master Circular on SEBI ICDR Chapter IX -- effective 2026-04-01
-Affected sections: capital_structure, compliance_certs, management
-Impact: GST registration date (2018-04-12) vs MCA incorporation date (2018-05-15)
-        requires statutory reconciliation under Companies Act S.7 & GST Act S.22
-Action: Attach predecessor entity conversion certificate
-```
-
-### Circular Alert Coverage
-
-| Regulation Area | Monitoring Scope |
-|---|---|
-| SME IPO disclosure requirements | All Schedule VI Part A/E amendments |
-| Capital structure changes | Post-issue capital ceiling, face value amendments |
-| Promoter lock-in rules | GCP utilization and lock-in period changes |
-| Auditor qualification | Independence, rotation, qualification requirements |
-
-Alerts are surfaced in the `RegulatoryAlertBanner` UI component and available via `GET /api/regulatory_alerts`. Each alert includes: circular number, effective date, affected wizard sections, session-specific impact analysis, and a specific required action.
-
----
-
-## OCR & Document Intelligence
-
-### Multi-Tier OCR Pipeline
-
-A **4-tier fallback chain** in `extractor.py` ensures maximum extraction coverage across all document qualities:
-
-```
-Tier 1: pdfplumber (text-based PDF extraction -- instant, zero OCR overhead)
-   |
-   v (empty pages or scanned documents)
-Tier 2: PaddleOCR PP-OCRv4 (primary -- production-grade, CPU-only)
-   |
-   v (PaddleOCR fails or confidence too low)
-Tier 3: pytesseract (Tesseract fallback)
-   |
-   v (all OCR engines fail)
-Tier 4: Regex / keyword rules -- returns null (never fabricated) + missing_fields[]
-```
-
-For **table-heavy documents** (financials, cap tables, litigation schedules), an additional **3-tier structured table extractor** runs in priority before the text pipeline:
-
-```
-camelot stream  -->  camelot lattice (Ghostscript)  -->  tabula (JRE)  -->  raw text
-```
-
-This prevents mis-pairing of numbers with wrong row/column labels in financial statements.
-
-### Document Types Supported
-
-| Document Type | Key Extracted Fields |
-|---|---|
-| Certificate of Incorporation | CIN, company name, incorporation date, registered office, company type |
-| GST Registration | GSTIN, declared turnover, registration date, filing status |
-| PAN / TAN Compliance | PAN number, PAN name, TAN |
-| Restated Financial Statements | 3-year: equity, net worth, revenue, EBITDA, PAT, EPS, RoNW, NAV, borrowings, cash flows |
-| MOA / AOA | Authorized capital, face value per share, main objects clause |
-| Register of Members (Cap Table) | Pre-offer shareholding, promoter group, aggregate promoter % |
-| DIR-12 / Board Resolutions | Directors (name / DIN / designation / independence), KMP |
-| Litigation Schedule | Structured litigation summary |
-| Industry Report (CRISIL / CARE / ICRA) | Market size, CAGR, report source |
-| Sales / GST Register | Top-5 customer revenue table, key geographies |
-
-### PaddleOCR Production Configuration
-
-```python
-# Tuned for CPU-only deployment -- no GPU required
-os.environ.setdefault("PADDLE_PDX_ENABLE_MKLDNN_BYDEFAULT", "False")  # prevents oneDNN crash
-
-PaddleOCR(
-    use_textline_orientation=False,  # speed optimization
-    det_model_dir=cache_dir,         # pre-downloaded at Docker build time
-    rec_model_dir=cache_dir,
-    lang='en'
-)
-```
-
-The `PADDLE_PDX_ENABLE_MKLDNN_BYDEFAULT=False` flag prevents the PP-OCRv6 oneDNN/PIR attribute conversion crash on certain CPU builds — a production-identified issue resolved in our deployment configuration.
-
----
-
-## AI/ML Feature Index A-Z
-
-> Every feature listed below is **production-implemented** — not prototyped, not mocked. All source files referenced are in the `backend/` directory.
-
-### A — Abridged Prospectus Generation (`generator.py`)
-
-Renders a **SEBI Schedule VI Part E** compliant Abridged Prospectus `.docx` with exact section order, table styling (`#D09E73` tan cover headers, `#D9D9D9` gray content tables), border rules, and font choices extracted from a real SEBI-filed OCXML. Missing fields render as `[MISSING: upload X]` or `[REQUIRES BANKER/LEGAL INPUT: ...]` inline — never silently omitted.
-
-### B — Blockchain Document Anchoring (`blockchain.py`)
-
-Every uploaded document and generated prospectus version is SHA-256 hashed and anchored to the Polygon Amoy testnet. See [Blockchain & Trust Architecture](#blockchain--trust-architecture) for full details.
-
-### C — Consistency Checker / Contradiction Engine (`consistency_checker.py`)
-
-Runs **20+ cross-document statutory checks** on every validation trigger:
-
-| Check | Rule Citation |
-|---|---|
-| Company name across form / PAN / GST / MCA | SEBI ICDR Reg 230(1)(a) |
-| GST turnover vs. P&L revenue (+/- 15% tolerance) | SEBI ICDR Reg 244(1)(b) |
-| GST registration predating incorporation | Companies Act S.7 + GST Act S.22 |
-| Paid-up capital exceeds Authorized capital | Companies Act S.61 |
-| Promoter post-issue holding below 20% | SEBI ICDR Reg 236(1) |
-| Objects of issue total does not match issue size | SEBI ICDR Reg 234 |
-| SME post-issue capital exceeds Rs 25 Crore | SEBI ICDR Reg 229(1) |
-| Price-band width exceeds 20% of floor | SEBI ICDR Reg 236 |
-| Diluted EPS differs from Basic EPS (no dilutive instruments) | Ind AS 33 |
-| Top-5 customer % vs. narrative text | SEBI ICDR Schedule VI |
-| Statutory auditor name mismatch | SEBI ICDR Reg 244 |
-| WACA certificate date plausibility | SEBI ICDR Schedule VI |
-| Segment reporting note presence | Ind AS 108 |
-| Face value vs. price-band floor | SEBI ICDR Reg 236 |
-| Litigation table vs. narrative text | SEBI ICDR Schedule VI Item 8 |
-| + 5 additional checks | |
-
-Contradiction findings feed the Dashboard, `/api/validate/fix-suggestion`, and the exported ZIP `contradiction_findings.json` — one source of truth.
-
-### D — Document Vault & Multi-Format Upload (`extractor.py`, `Uploader.jsx`)
-
-Accepts 10 statutory document types. Each document triggers background extraction via `job_manager.py` — large scans never block the UI.
-
-### E — Entity Extraction & Named Entity Recognition (`nlp_analyzer.py`)
-
-See [NLP & Machine Learning Pipeline](#nlp--machine-learning-pipeline) for the full NER pipeline.
-
-### F — Financial Ratio Audit (`financial_ratio_checker.py`)
-
-Recomputes **5 key financial ratios** from restated financials against sector-specific benchmarks:
-
-| Ratio | Manufacturing | NBFC | Services | Jewellery / Trading |
-|---|---|---|---|---|
-| PAT Margin | >=5% | >=10% | >=8% | >=3% |
-| EBITDA Margin | >=10% | -- | >=12% | >=5% |
-| Leverage (D/E) | <=3x | <=8x | <=2x | <=4x |
-| Return on Equity | >=10% | >=12% | >=15% | >=8% |
-
-Implausible ratios are flagged with specific statutory citations and remediation guidance.
-
-### G — Gap Scoring & SEBI ICDR Coverage Engine (`coverage.py`)
-
-Tracks **55 individually clause-referenced SEBI ICDR requirements** in real time. Each requirement is tagged `fill_type: "manual"` (requires human decision) or `"extracted"` (requires document upload). Live coverage score appears on the Dashboard as a radial gauge.
-
-### H — Hallucination Guard (`hallucination_guard.py`)
-
-Before any LLM-drafted narrative is accepted into the system:
-
-1. Extract every number the LLM generated (regex over full text)
-2. Normalize across unit conversions (Crore / Lakh / units, +/- 0.01% tolerance)
-3. Verify each number traces back to a real value in the session fact store
-4. If any number is unverified — retry LLM generation or fall back to a safe template
-5. Output includes `violations[]` array and `clean_text` with `[UNVERIFIED: N]` markers
-
-```python
-# Example: LLM writes "Revenue grew to Rs 47.3 Cr" -- if 47.3 is NOT in session, it is flagged
-guard = HallucinationGuard()
-result = guard.verify(llm_text, session_data)
-# result.passed = False, result.violations = ["47.3"]
-```
-
-### I — Intelligent Auto-Fill Wizard (`Wizard.jsx`, `schema.json`)
-
-**106 fields across 21 sections** — every field carries a `source_hint` declaring which document populates it:
-
-```json
-{
-  "field_key": "company_cin",
-  "source_hint": "incorporation",
-  "data_type": "string",
-  "required": true,
-  "blocking": true
-}
-```
-
-Fields with `source_hint: "manual"` are never auto-filled — they display inline explanations. Four sector-specific KPI templates adapt the KPIs section per SEBI KPI disclosure requirements.
-
-### J — Job Manager (Async Background Processing) (`job_manager.py`)
-
-Thread-safe background job queue ensures large OCR jobs never block upload requests. Upload returns immediately with a `job_id`; frontend polls `/api/jobs/{id}/status` every 2 seconds.
-
-### K — KPI Sector Templates (`schema.json`)
-
-Four curated KPI templates:
-
-- **Manufacturing**: Inventory days, order book, installed vs. utilized capacity, EBITDA/ton
-- **NBFC**: AUM, NIM, CRAR, credit rating, Gross NPA, Net NPA
-- **Jewellery & Trading**: Inventory turnover, gold tonnage, margin per gram
-- **Services**: Revenue per employee, utilization rate, client concentration, ARR
-
-### L — LLM Provider Abstraction (`llm_client.py`)
-
-Single abstraction layer over **4 LLM providers** — swapping is a `.env` change, zero code edits:
-
-- **Groq** (default) · **OpenAI** · **Anthropic** · **Ollama** (local / offline)
-- Dual Groq key support: `GROQ_API_KEY_2` auto-rotates when the primary hits rate limits
-- JSON-mode extraction across all providers for structured, schema-validated output
-- Graceful fallback to rule-based extraction when no key is configured
-
-### M — Multi-Layer OCR Pipeline (`extractor.py`)
-
-See [OCR & Document Intelligence](#ocr--document-intelligence) for full details on the 4-tier pipeline.
-
-### N — NLP Red-Flag Scanner (`nlp_analyzer.py`)
-
-See [NLP & Machine Learning Pipeline](#nlp--machine-learning-pipeline) for the full red-flag scanner.
-
-### O — OCR Status & Confidence Monitoring (`/api/ocr_status`)
-
-Real-time per-document OCR status: extraction tier used, confidence score, extracted field count, and `missing_fields[]` per document.
-
-### P — Peer Comparison Engine (`peer_comparison.py`)
-
-Auto-populates the **Basis of Issue Price** section with Schedule VI-compliant metrics: EPS (Basic & Diluted), NAV per share, RoNW, P/E ratio. A comparative table is auto-inserted into the generated DRHP.
-
-### Q — Quality Scoring & Filing Readiness (`validator.py`)
-
-| Score | What It Measures | Hard Cap |
-|---|---|---|
-| `filing_readiness` | Only blocking fields — capped at 80% when contradictions are open | Yes |
-| `overall_completeness` | All required fields (including non-blocking) | No |
-
-### R — RAG Engine (`rag_engine.py`)
-
-See [Retrieval-Augmented Generation](#retrieval-augmented-generation) for full details.
-
-### S — SEBI Circular Monitoring (`sebi_circulars.py`)
-
-See [Automated Circular Monitoring](#automated-circular-monitoring) for full details.
-
-### T — Tamper-Evident Audit Trail (`audit_log.py`)
-
-**Append-only JSONL audit log** per user capturing every material action:
-
-- Document uploads and extraction results
-- Form field edits with old and new values
-- Validation runs and contradiction findings
-- Banker certification events (review / certify / uncertify)
-- Export bundle generation and blockchain anchoring transaction hashes
-
-The audit log is included in every export ZIP bundle and is itself anchored on-chain.
-
-### U — Uploader — Document Vault UI (`Uploader.jsx`)
-
-Drag-and-drop document upload with one card per document type, real-time background job progress bars, extracted-field preview panels, W3C Verifiable Credential inspector, and re-upload support.
-
-### V — Verifiable Credentials (`verifiable_credentials.py`)
-
-W3C v1.1 JSON-LD Verifiable Credential issuance per uploaded document. See [Blockchain & Trust Architecture](#blockchain--trust-architecture) for the full credential schema.
-
-### W — Wizard — 10-Tab Drafting Form (`Wizard.jsx`, `schema.json`)
-
-| Tab | Schema Sections |
-|---|---|
-| Cover Page | Cover Page, Summary of the Offer |
-| General Info | General Information, Definitions |
-| Board & Promoters | Promoters, Board & KMP, Related Party Transactions |
-| Capital Structure | Capital Structure, Shareholding Pattern |
-| Objects of Issue | Objects of the Issue |
-| Business Operations | Business Overview, Industry Overview |
-| Financials & KPIs | Financial Statements, KPIs, WACA |
-| Risk Disclosures | Risk Factors |
-| Compliance | Legal Disclosures, Compliance Certificates, Material Contracts |
-| Declarations | Declaration |
-
-### X — Export Bundle (`exporter.py`)
-
-```
-IPO_Sherpa_Export_Bundle.zip
-├── DRHP_Draft.docx              -- Schedule VI Part A DRHP
-├── Abridged_Prospectus.docx     -- Schedule VI Part E (15-page summary)
-├── coverage_report.json         -- 55-requirement gap analysis
-├── contradiction_findings.json  -- All open / resolved contradictions
-├── audit_log.jsonl              -- Complete immutable audit trail
-└── due_diligence_summary.pdf    -- Form A due-diligence certificate
-```
-
-Export is **gated behind banker certification** — no bypass, no exceptions. No configuration flag skips it.
-
-### Y — Source Transparency
-
-Every wizard field carries a `source_hint` and an inline explanation for manually required fields:
-
-> "Objects of the Issue is a business decision by your board — no document can substitute for this."
-
-Zero silent failures. Zero unexplained blanks. Every gap is actionable.
-
-### Z — Zero-Downtime Session Persistence
-
-- **Supabase mode**: Multi-user, real-time sync, JWT auth
-- **Local mode**: `session_state.json` — `docker compose down && up` preserves an in-progress session
-- Named Docker volumes survive rebuilds: `backend-session-state`, `backend-uploads`, `backend-audit-log`, `backend-chroma-db`
-
----
-
-## Automated Regulatory Compliance
-
-### 55 Live SEBI ICDR Requirements
-
-`coverage.py` maintains 55 clause-referenced requirements, each tagged with fill type:
-
-```python
-{
-  "id": "icdr_234_objects",
-  "regulation": "SEBI ICDR Reg 234",
-  "title": "Objects of the Issue disclosure",
-  "fill_type": "manual",
-  "section": "objects_of_issue",
-  "blocking": True
-}
-```
-
-| State | Meaning |
-|---|---|
-| Covered | Field populated from extraction or manual input |
-| Needs Document | Upload the specified document to auto-populate |
-| Needs Manual Input | Board / CA / legal decision required |
-| Blocking | Cannot generate DRHP until resolved |
-
----
-
-## Enterprise-Grade Security
-
-### Authentication & Authorization
-
-- **Supabase JWT** bearer token authentication in production
-- **Demo mode**: Fixed demo user with zero login friction — all features available
-- All routes operate unauthenticated in local mode with no feature degradation
-
-### Security Architecture
-
-| Layer | Implementation |
-|---|---|
-| Transport | HTTPS (TLS 1.3 in production via Supabase / Railway) |
-| Document storage | Local filesystem with per-user path isolation |
-| Session isolation | Per-user `session_id` enforced on all API routes |
-| Blockchain verification | Permissionless public verification of any document hash |
-| Audit immutability | Append-only JSONL — no delete or update endpoints exist |
-| Rate limiting | FastAPI middleware on all API routes |
-| CORS | Configurable `CORS_ORIGINS` (restricted in production) |
-| LLM API privacy | Only extracted text snippets sent to LLM APIs — never raw documents |
-
-### Data Privacy
-
-- Documents never leave your infrastructure — only SHA-256 hashes go on-chain
-- No telemetry, no analytics collection, no third-party tracking
-- Offline / airgapped deployments supported via rule-based extraction fallback
-
----
-
-## Frontend Architecture
-
-### Components
-
-| Component | Description |
-|---|---|
-| `SplashScreen.jsx` | Animated boot sequence with logo reveal |
-| `AuthScreen.jsx` | Supabase auth with demo-mode fallback |
-| `Dashboard.jsx` | Filing readiness overview: scores, contradiction list, section status |
-| `Uploader.jsx` | Document Vault — drag-and-drop with real-time progress and VC inspector |
-| `Wizard.jsx` | 10-tab drafting form |
-| `Copilot.jsx` | Chat-style AI assistant with direct form-edit capability |
-| `BankerDashboard.jsx` | Merchant banker section-by-section certification workflow |
-| `DueDiligenceManager.jsx` | Form A due-diligence certificate generation |
-| `ComplianceScoreMeter.jsx` | Animated radial compliance / coverage score gauge |
-| `RegulatoryAlertBanner.jsx` | Live SEBI circular alert surfacing |
-| `AuditTrail.jsx` | Append-only audit log timeline viewer |
-
-### UX Highlights
-
-- **Zero-router SPA**: `activeTab` string routing with no client-side router overhead
-- **Optimistic UI**: Form changes reflect immediately; backend sync is asynchronous
-- **Source Badges**: Every auto-filled field shows origin ("auto-extracted from [doc type]" vs "manual input")
-- **Inline Action Copilot**: AI can apply its own fix suggestions directly to form fields
-- **Export Gate Visualization**: Red `EXPORT BLOCKED` to Green `EXPORT READY` progress meter
-- **Responsive Design**: Works on tablets for on-site merchant banker review
 
 ---
 
@@ -717,14 +127,16 @@ Zero silent failures. Zero unexplained blanks. Every gap is actionable.
 |  financial_ratio_checker.py -- restated-financials ratio audit                  |
 |  nlp_analyzer.py        -- semantic matching, NER, red flags, risk-factor draft  |
 |  hallucination_guard.py -- verifies every LLM-drafted number is real            |
-|  generator.py           -- Draft Abridged Prospectus DOCX (SEBI format)         |
-|  exporter.py            -- DRHP + Abridged Prospectus + ZIP bundle              |
+|  generator.py           -- Draft Abridged Prospectus DOCX (single source of truth)|
+|  exporter.py            -- ZIP export bundle (reuses generator.py's DOCX)       |
 |  certification.py       -- per-section banker sign-off, gates export            |
 |  audit_log.py           -- append-only JSONL of every material action           |
-|  blockchain.py          -- SHA-256 anchoring to Polygon Amoy testnet            |
+|  blockchain.py          -- SHA-256 anchoring, Polygon Amoy, non-blocking seal   |
+|  doc_forensics.py       -- structural PDF tamper signals, run at upload time    |
 |  verifiable_credentials.py -- W3C DID/VC issuance per uploaded document         |
 |  rag_engine.py          -- ChromaDB semantic search over ICDR corpus            |
 |  sebi_circulars.py      -- live regulatory-change alert feed                    |
+|  llm_client.py          -- provider-agnostic LLM abstraction, Groq key pool     |
 |  due_diligence.py, peer_comparison.py, version_tracker.py, ps_mapping.py       |
 +----------------------------------+---------------------------------------------+
                                    |
@@ -736,7 +148,7 @@ Zero silent failures. Zero unexplained blanks. Every gap is actionable.
     +--------------------+  +---------------+ +----------------------+
 ```
 
-### API Surface (~50 Endpoints)
+### API Surface (~50 endpoints)
 
 **Session & Schema** · `GET /api/schema` · `GET /api/session` · `POST /api/session` · `POST /api/session_sync` · `POST /api/session/reset`
 
@@ -758,180 +170,394 @@ Zero silent failures. Zero unexplained blanks. Every gap is actionable.
 
 ---
 
+## Trust & Verification Layer
+
+Every document, prospectus version, and audit snapshot gets **two independent, complementary integrity signals** — not one.
+
+### 1. Blockchain Anchoring (`blockchain.py`)
+
+A **Polygon Amoy (EVM-compatible testnet) smart contract** (`SEBIDocumentRegistry`) provides cryptographically verifiable tamper-evidence. No document content ever leaves your infrastructure — only SHA-256 digests go on-chain.
+
+| Function | Trigger | On-Chain Data |
+|---|---|---|
+| `anchorDocument()` | Document upload | SHA-256(document bytes), timestamp, doc type |
+| `sealProspectus()` | Prospectus generation | SHA-256(DOCX bytes), version number |
+| `logAudit()` | Validation run | SHA-256(audit snapshot), checks run, checks passed |
+| `verifyDocument()` | Public verification (permissionless) | Hash lookup, returns anchor timestamp |
+
+```
+                     +------------------------------------+
+                     |   SEBIDocumentRegistry Contract    |
+                     |   (Polygon Amoy Testnet -- EVM)    |
+                     +----------------+-------------------+
+                                      |
+              +-----------------------+-----------------------+
+              |                       |                       |
+     anchorDocument()         sealProspectus()           logAudit()
+     SHA-256(doc_bytes)       SHA-256(docx_bytes)        SHA-256(audit_log)
+```
+
+**Deterministic mock mode**: with no RPC endpoint or private key configured, blockchain calls return deterministic `[MOCK]`-prefixed responses — zero crashes, full functional parity for offline evaluation.
+
+**Non-blocking sealing**: `sealProspectus()` is a live testnet transaction that can take up to ~90 seconds per attempt plus retry backoff on a congested RPC. `/api/generate` never waits on it — the DOCX is generated and returned immediately, sealing runs as a background task afterward. A slow or failed anchor attempt can never block or break a download.
+
+Every uploaded document also receives a **W3C v1.1 JSON-LD Verifiable Credential**, issued by a DID anchored to Polygon Amoy:
+
+```json
+{
+  "@context": ["https://www.w3.org/2018/credentials/v1", "https://schema.sebi.gov.in/credentials/v1"],
+  "type": ["VerifiableCredential", "SEBIDocumentComplianceCredential"],
+  "issuer": { "id": "did:polygon:amoy:0x71C7656EC7ab88b098defB751B7401B5f6d8976F" },
+  "credentialSubject": { "document_type": "incorporation", "verification_status": "AUTHENTICATED", "doc_hash": "0x4f2a..." }
+}
+```
+
+### 2. Structural Document Forensics (`doc_forensics.py`)
+
+A second signal answering a question blockchain anchoring can't: not "did this change after upload" but "does this file's own history look right." Deterministic, dependency-free analysis of a PDF's raw bytes at upload time, before OCR/LLM processing ever touches it:
+
+| Signal | What It Detects |
+|---|---|
+| Incremental-save count | Multiple `%%EOF` / `/Prev` xref entries — re-saved after first creation |
+| Modification date after creation date | `/ModDate` later than `/CreationDate` in the PDF's own metadata |
+| Editor/scanner tool fingerprint | `/Producer` / `/Creator` matching known PDF-editing or scanning tools |
+| Thin/missing text layer | Little to no extractable text — a scan or flattened image |
+| Digital signature presence | Positive signal, never penalised when absent |
+
+Neither signal claims to prove forgery — both surface signs worth a human's attention before relying on a document's figures.
+
+---
+
+## AI & Document Intelligence
+
+### Multi-Tier OCR Pipeline (`extractor.py`)
+
+A **4-tier fallback chain** ensures maximum extraction coverage across real-world document quality:
+
+```
+Tier 1: pdfplumber (text-based PDF -- instant, zero OCR overhead)
+   | (empty pages or scanned documents)
+Tier 2: PaddleOCR (production-grade, CPU-only)
+   | (fails or confidence too low)
+Tier 3: pytesseract (Tesseract fallback)
+   | (all OCR engines fail)
+Tier 4: Regex / keyword rules -- returns null (never fabricated) + missing_fields[]
+```
+
+For **table-heavy documents** (financials, cap tables, litigation schedules), a 3-tier structured table extractor runs first: `camelot stream → camelot lattice (Ghostscript) → tabula (JRE) → raw text` — preventing numbers from being paired with the wrong row/column label.
+
+| Document Type | Key Extracted Fields |
+|---|---|
+| Certificate of Incorporation | CIN, company name, incorporation date, registered office, company type |
+| GST Registration | GSTIN, declared turnover, registration date, filing status |
+| PAN / TAN Compliance | PAN number, PAN name, TAN |
+| Restated Financial Statements | 3-year: equity, net worth, revenue, EBITDA, PAT, EPS, RoNW, NAV, borrowings, cash flows |
+| MOA / AOA | Authorized capital, face value per share, main objects clause |
+| Register of Members (Cap Table) | Pre-offer shareholding, promoter group, aggregate promoter % |
+| DIR-12 / Board Resolutions | Directors (name / DIN / designation / independence), KMP |
+| Litigation Schedule | Structured litigation summary |
+| Industry Report (CRISIL / CARE / ICRA) | Market size, CAGR, report source |
+| Sales / GST Register | Top-5 customer revenue table, key geographies |
+
+### Retrieval-Augmented Generation (`rag_engine.py`)
+
+The Copilot is a **regulation-grounded question-answering system**, not a generic LLM wrapper:
+
+```
+User Query -> all-MiniLM-L6-v2 embedding -> ChromaDB cosine similarity search
+           -> top-K SEBI ICDR Chapter IX clauses -> LLM synthesis
+           -> grounded answer with regulation_no, chapter, url, confidence
+```
+
+The vector store is seeded once at container startup and persists across restarts via a named volume — no re-indexing on every boot.
+
+### NLP Pipeline (`nlp_analyzer.py`)
+
+`sentence-transformers/all-MiniLM-L6-v2` (384-dim embeddings) powers semantic field matching, red-flag detection, and entity disambiguation — falling back to `difflib.SequenceMatcher` when PyTorch is unavailable, so functionality never depends on GPU access.
+
+| Flag Category | Example Detection | Severity |
+|---|---|---|
+| Vague language | "market leader", "rapidly growing" without citation | HIGH |
+| Generic boilerplate risk | Macro risks without company-specific impact figures | HIGH |
+| Missing litigation declaration | No affirmative nil/pending litigation statement | MEDIUM |
+| Unsubstantiated forward-looking claims | Revenue projections without stated basis | HIGH |
+| Customer concentration risk | >30% revenue from single customer undisclosed | HIGH |
+
+Every flag carries 4-step chain-of-thought reasoning with statutory citations. The LLM-backed scan is cached by content hash — an unrelated form edit elsewhere in the session never re-triggers it.
+
+### Hallucination Guard (`hallucination_guard.py`)
+
+Before any LLM-drafted narrative is accepted:
+
+1. Extract every number the LLM generated
+2. Normalize across unit conversions (Crore / Lakh / units, ±0.01% tolerance)
+3. Verify each number traces back to a real value in the session fact store
+4. Unverified → retry generation, or fall back to a safe template
+5. Output includes `violations[]` and `clean_text` with `[UNVERIFIED: N]` markers
+
+```python
+guard = HallucinationGuard()
+result = guard.verify(llm_text, session_data)
+# result.passed = False, result.violations = ["47.3"]  -- if 47.3 wasn't actually in the session
+```
+
+### LLM Provider Layer (`llm_client.py`)
+
+One abstraction over **4 providers** — Groq (default), OpenAI, Anthropic, Ollama (local/offline) — swapping is a `.env` change, zero code edits. Groq keys (`GROQ_API_KEY_2`, `_3`, ... or comma-separated `GROQ_API_KEYS`) form a **round-robin pool**: every call picks the next key in rotation, not just on failure, so concurrent document extraction spreads across keys instead of serializing behind one rate limit. A rate-limited call retries across the remaining pool before giving up — verified thread-safe under real concurrent load.
+
+---
+
+## Compliance Engine
+
+### 55 Live SEBI ICDR Requirements (`coverage.py`)
+
+Each clause-referenced requirement is tagged with a fill type so the UI can prompt correctly:
+
+```python
+{"id": "icdr_234_objects", "regulation": "SEBI ICDR Reg 234", "fill_type": "manual", "blocking": True}
+```
+
+| State | Meaning |
+|---|---|
+| Covered | Field populated from extraction or manual input |
+| Needs Document | Upload the specified document to auto-populate |
+| Needs Manual Input | Board / CA / legal decision required |
+| Blocking | Cannot generate the prospectus until resolved |
+
+### 20+ Cross-Document Contradiction Checks (`consistency_checker.py`)
+
+| Check | Rule Citation |
+|---|---|
+| Company name across form / PAN / GST / MCA | SEBI ICDR Reg 230(1)(a) |
+| GST turnover vs. P&L revenue (±15% tolerance) | SEBI ICDR Reg 244(1)(b) |
+| GST registration predating incorporation | Companies Act S.7 + GST Act S.22 |
+| Paid-up capital exceeds Authorized capital | Companies Act S.61 |
+| SME post-issue capital exceeds ₹25 Crore | SEBI ICDR Reg 229(1) |
+| Objects of issue total does not match issue size | SEBI ICDR Reg 234 |
+| Price-band width exceeds 20% of floor | SEBI ICDR Reg 236 |
+| Diluted EPS exceeds Basic EPS | Ind AS 33 |
+| Top-5 customer % vs. narrative text | SEBI ICDR Schedule VI |
+| Statutory auditor name mismatch | SEBI ICDR Reg 244 |
+| WACA certificate date plausibility | SEBI ICDR Schedule VI |
+| Litigation table vs. narrative text | SEBI ICDR Schedule VI Item 8 |
+| **Operating cash flow weak relative to reported PAT** | Earnings-quality review practice |
+| **Trade receivables growing faster than revenue** | Earnings-quality review practice |
+| + 6 additional checks | |
+
+The two bolded checks go beyond format validation into **earnings quality** — the same sniff-test a merchant banker applies before a DRHP is filed. Findings feed the Dashboard, `/api/validate/fix-suggestion`, and the exported ZIP's `contradiction_findings.json` — one engine, one source of truth across every surface.
+
+### Financial Ratio Audit (`financial_ratio_checker.py`)
+
+5 ratios recomputed from restated financials against sector benchmarks:
+
+| Ratio | Manufacturing | NBFC | Services | Jewellery / Trading |
+|---|---|---|---|---|
+| PAT Margin | ≥5% | ≥10% | ≥8% | ≥3% |
+| EBITDA Margin | ≥10% | — | ≥12% | ≥5% |
+| Leverage (D/E) | ≤3x | ≤8x | ≤2x | ≤4x |
+| Return on Equity | ≥10% | ≥12% | ≥15% | ≥8% |
+
+### Automated Circular Monitoring (`sebi_circulars.py`)
+
+```
+SEBI Official Circular Feed -> Circular Parser -> Session Impact Analyzer -> RegulatoryAlertBanner
+```
+
+```
+[HIGH] SEBI/HO/CFD/PoD-2/P/CIR/2026/014 -- Master Circular, SEBI ICDR Chapter IX
+Impact: GST registration date vs MCA incorporation date requires statutory
+        reconciliation under Companies Act S.7 & GST Act S.22
+Action: Attach predecessor entity conversion certificate
+```
+
+Available via `GET /api/regulatory_alerts` — circular number, effective date, affected sections, session-specific impact, and a specific required action.
+
+---
+
+## AI/ML Feature Index A–Z
+
+> Every feature below is production-implemented — not prototyped, not mocked.
+
+**A — Abridged Prospectus Generation** (`generator.py`) · SEBI Schedule VI Part E `.docx` with section order, table styling, and border rules extracted from a real SEBI-filed OCXML. Missing fields render as `[MISSING: upload X]` or `[REQUIRES BANKER/LEGAL INPUT]` — never silently omitted.
+
+**B — Blockchain Anchoring** (`blockchain.py`) · See [Trust & Verification Layer](#trust--verification-layer).
+
+**C — Consistency Checker** (`consistency_checker.py`) · See [Compliance Engine](#compliance-engine).
+
+**D — Document Vault** (`extractor.py`, `Uploader.jsx`) · 10 statutory document types, background extraction via `job_manager.py` — large scans never block the UI.
+
+**E — Entity Extraction** (`nlp_analyzer.py`) · CIN, GSTIN, PAN/TAN, monetary amounts with unit disambiguation, promoter/KMP names, statutory dates.
+
+**F — Financial Ratio Audit** (`financial_ratio_checker.py`) · See [Compliance Engine](#compliance-engine).
+
+**G — Gap Scoring** (`coverage.py`) · 55 clause-referenced requirements, live radial gauge on the Dashboard.
+
+**H — Hallucination Guard** (`hallucination_guard.py`) · See [AI & Document Intelligence](#ai--document-intelligence).
+
+**I — Intelligent Auto-Fill Wizard** (`Wizard.jsx`, `schema.json`) · 107 fields across 21 sections, every field carrying a `source_hint`. Fields tagged `"manual"` are never auto-filled — they show an inline explanation instead. 4 sector-specific KPI templates.
+
+**J — Job Manager** (`job_manager.py`) · Thread-safe background queue; upload returns instantly with a `job_id`, frontend polls `/api/jobs/{id}/status`.
+
+**K — KPI Sector Templates** (`schema.json`) · Manufacturing (inventory days, capacity utilization) · NBFC (AUM, NIM, CRAR, NPA) · Jewellery & Trading (inventory turnover, gold tonnage) · Services (revenue/employee, ARR).
+
+**L — LLM Provider Abstraction** (`llm_client.py`) · See [AI & Document Intelligence](#ai--document-intelligence).
+
+**M — Multi-Tier OCR** (`extractor.py`) · See [AI & Document Intelligence](#ai--document-intelligence).
+
+**N — NLP Red-Flag Scanner** (`nlp_analyzer.py`) · See [AI & Document Intelligence](#ai--document-intelligence).
+
+**O — OCR Status Monitoring** (`/api/ocr_status`) · Per-document extraction tier used, confidence score, extracted field count, `missing_fields[]`.
+
+**P — Peer Comparison Engine** (`peer_comparison.py`) · Schedule VI-compliant Basis-of-Issue-Price metrics (EPS, NAV, RoNW, P/E) against comparable listed peers, via `POST /api/peer_comparison`.
+
+**Q — Filing Readiness Scoring** (`validator.py`) · `filing_readiness` (blocking fields only, capped at 80% while contradictions are open) and `overall_completeness` (all required fields) — two distinct, deliberately-different scores.
+
+**R — RAG Engine** (`rag_engine.py`) · See [AI & Document Intelligence](#ai--document-intelligence).
+
+**S — SEBI Circular Monitoring** (`sebi_circulars.py`) · See [Compliance Engine](#compliance-engine).
+
+**T — Tamper-Evident Audit Trail** (`audit_log.py`) · Append-only JSONL per user — uploads, edits, validation runs, certification events, export/anchoring transactions. Included in every export bundle and itself anchored on-chain.
+
+**U — Uploader UI** (`Uploader.jsx`) · Drag-and-drop, real-time job progress, extracted-field preview, W3C VC inspector, structural-forensics badges.
+
+**V — Verifiable Credentials** (`verifiable_credentials.py`) · See [Trust & Verification Layer](#trust--verification-layer).
+
+**W — 10-Tab Drafting Wizard** (`Wizard.jsx`, `schema.json`) · Cover Page · General Info · Board & Promoters · Capital Structure · Objects of Issue · Business Operations · Financials & KPIs · Risk Disclosures · Compliance · Declarations.
+
+**X — Export Bundle** (`exporter.py`) · Reuses `generator.py`'s DOCX directly — one document builder, not two independently-maintained ones that could silently drift apart:
+
+```
+{Company}_Export_Bundle.zip
+├── {Company}_Draft_Abridged_Prospectus.docx
+├── coverage_report.json
+├── contradiction_findings.json
+└── audit_log.jsonl
+```
+
+Gated behind banker certification — no bypass, no configuration flag skips it.
+
+**Y — Source Transparency** · Every field explains itself: *"Objects of the Issue is a business decision by your board — no document can substitute for this."* Zero silent failures, zero unexplained blanks.
+
+**Z — Zero-Downtime Session Persistence** · Supabase mode: multi-user, real-time sync, JWT auth. Local mode: `session_state.json`, preserved across container restarts via named Docker volumes.
+
+---
+
+## Frontend
+
+| Component | Description |
+|---|---|
+| `SplashScreen.jsx` | Animated boot sequence |
+| `AuthScreen.jsx` | Supabase auth with demo-mode fallback |
+| `Dashboard.jsx` | Filing readiness, contradiction list, section status |
+| `Uploader.jsx` | Document Vault — drag-and-drop, live progress, VC inspector |
+| `Wizard.jsx` | 10-tab drafting form |
+| `Copilot.jsx` | Chat-style AI assistant with direct form-edit capability |
+| `BankerDashboard.jsx` | Section-by-section certification workflow |
+| `DueDiligenceManager.jsx` | Form A due-diligence certificate generation |
+| `ComplianceScoreMeter.jsx` | Animated radial compliance gauge |
+| `RegulatoryAlertBanner.jsx` | Live SEBI circular alerts |
+| `AuditTrail.jsx` | Append-only audit log timeline |
+| `JourneyProgress.jsx` | Always-visible, segmented filing-progress rail in the header |
+
+**UX highlights**: zero-router SPA (`activeTab` string routing), optimistic UI, source badges on every auto-filled field, an AI Copilot that can apply its own fix suggestions directly, a red-to-green export-gate meter, and a progress rail that's genuinely always on screen — not buried in a collapsible sidebar.
+
+---
+
+## Security
+
+| Layer | Implementation |
+|---|---|
+| Authentication | Supabase JWT bearer in production; zero-friction demo mode locally |
+| Document storage | Local filesystem, per-user path isolation |
+| Session isolation | Per-user `session_id` enforced on every API route |
+| Blockchain verification | Permissionless public verification of any document hash |
+| Audit immutability | Append-only JSONL — no delete or update endpoints exist |
+| CORS | Configurable `CORS_ORIGINS`, restricted in production |
+| LLM data privacy | Only extracted text snippets sent to LLM APIs — never raw documents |
+
+Documents never leave your infrastructure — only SHA-256 hashes go on-chain. No telemetry, no analytics, no third-party tracking. Offline/airgapped deployment is fully supported via the rule-based extraction fallback.
+
+---
+
 ## Project Structure
 
 ```
 SEBI/
 ├── backend/
 │   ├── main.py                    FastAPI app & all ~50 API routes
-│   ├── schema.json                Field/section data model (21 sections, 106 fields)
+│   ├── schema.json                Field/section data model (21 sections, 107 fields)
 │   ├── extractor.py               Document -> structured data (10 doc types, 4-tier OCR)
-│   ├── generator.py               Draft Abridged Prospectus DOCX generator
-│   ├── exporter.py                Full DRHP + Abridged Prospectus + ZIP bundle
+│   ├── generator.py               Draft Abridged Prospectus DOCX generator (single source of truth)
+│   ├── exporter.py                ZIP export bundle -- reuses generator.py, no duplicate builder
 │   ├── validator.py               Completeness / filing-readiness scoring
 │   ├── coverage.py                55 named SEBI ICDR requirements + gap engine
 │   ├── consistency_checker.py     20+ cross-field/cross-document contradiction checks
 │   ├── financial_ratio_checker.py 5 ratio audit with sector benchmarks
 │   ├── hallucination_guard.py     Digit-level LLM fact verification
 │   ├── nlp_analyzer.py            Semantic matching, NER, risk-factor drafting
-│   ├── llm_client.py              Provider-agnostic LLM abstraction (4 providers)
+│   ├── llm_client.py              Provider-agnostic LLM abstraction, Groq key-pool round-robin
+│   ├── doc_forensics.py           Structural PDF tamper signals at upload time
 │   ├── rag_engine.py              ChromaDB-backed SEBI ICDR semantic search
 │   ├── sebi_icdr_corpus.py        Curated SEBI ICDR Chapter IX regulation corpus
 │   ├── sebi_circulars.py          Live regulatory alert feed
 │   ├── certification.py           Banker sign-off workflow / export gate
 │   ├── audit_log.py               Append-only JSONL audit trail
-│   ├── blockchain.py              Polygon Amoy SHA-256 anchoring (live + mock)
+│   ├── blockchain.py              Polygon Amoy SHA-256 anchoring (live + mock), non-blocking seal
 │   ├── verifiable_credentials.py  W3C v1.1 JSON-LD VC issuance
 │   ├── due_diligence.py           Form A due-diligence certificate generator
 │   ├── peer_comparison.py         Dynamic peer valuation / accounting comparison
 │   ├── version_tracker.py         Prospectus revision snapshots & diffs
 │   ├── job_manager.py             Thread-safe background extraction job queue
 │   ├── ps_mapping.py              SEBI TechSprint problem-statement clause mapping
-│   ├── tests/                     pytest suite (47 tests)
+│   ├── tests/                     pytest suite (75 tests)
 │   └── Dockerfile                 Multi-stage build; models pre-downloaded at build time
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx                Top-level state, routing, session sync
-│   │   ├── components/            Wizard, Uploader, Dashboard, Copilot, BankerDashboard, ...
+│   │   ├── components/            Wizard, Uploader, Dashboard, Copilot, BankerDashboard, JourneyProgress, ...
 │   │   ├── api.js, config.js, supabase.js
 │   │   └── data/icdrRegulations.js
 │   ├── Dockerfile                 Multi-stage: Vite build -> nginx:alpine SPA server
 │   └── nginx.conf                 SPA fallback routing
 ├── contracts/                     Solidity SEBIDocumentRegistry smart contract
 ├── draft/                         Reference SEBI-filed abridged prospectus samples
-├── docker-compose.yml             One-command full-stack deployment
-├── .env.example                   Environment variable template with inline documentation
+├── docker-compose.yml
+├── .env.example                   Environment variable reference with inline documentation
 └── DEMO_SCRIPT.md                 10-minute hackathon judge demo walkthrough
 ```
 
 ---
 
-## Environment Variables
-
-| Variable | Purpose | Required |
-|---|---|---|
-| `LLM_PROVIDER` | `groq` / `openai` / `anthropic` / `ollama` | No — defaults to `groq`; without key uses offline/template mode |
-| `LLM_MODEL` | Override default model for the selected provider | No |
-| `GROQ_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Provider API key | Only for the selected provider |
-| `GROQ_API_KEY_2` | Second Groq key — auto-rotates on rate limit | No |
-| `OLLAMA_BASE_URL` | Local Ollama server URL | Only if `LLM_PROVIDER=ollama` |
-| `POLYGON_RPC_URL` | Polygon Amoy RPC endpoint | No — mock mode if unset |
-| `BLOCKCHAIN_PRIVATE_KEY` | Wallet private key for blockchain anchoring | No — mock mode if unset |
-| `BLOCKCHAIN_CONTRACT_ADDRESS` | Deployed SEBIDocumentRegistry address | No — mock mode if unset |
-| `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_SECRET_KEY` | Multi-user workspaces + auth | No — local JSON fallback |
-| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | Frontend Supabase client (baked at build time) | No |
-| `CORS_ORIGINS` / `HOST` / `PORT` | Backend server configuration | No — sensible defaults |
-
----
-
 ## Testing
 
-```bash
-cd backend
-python -m pytest tests/ -v
-```
-
-**47 tests** covering:
+**75 tests**, isolated and deterministic — run offline, no network or live API keys required.
 
 | Module | What Is Tested |
 |---|---|
 | `certification.py` | Section sign-off, export gating, uncertify flows |
-| `consistency_checker.py` | All 20+ contradiction check scenarios |
+| `consistency_checker.py` | All 20+ contradiction check scenarios, including the earnings-quality signals |
 | `coverage.py` | 55-requirement scoring, gap classification |
+| `doc_forensics.py` | Structural PDF signals on real generated PDFs and crafted byte fixtures |
 | `hallucination_guard.py` | Number extraction, unit normalization, violation detection |
-| `nlp_analyzer.py` | Semantic similarity, red-flag detection, entity extraction |
+| `llm_client.py` | Groq key-pool round-robin, rate-limit retry, thread-safety under concurrent calls |
+| `nlp_analyzer.py` | Semantic similarity, red-flag detection, entity extraction, narrative-scan caching |
 | `validator.py` | Completeness scoring, filing-readiness capping logic |
 
 ---
 
-## Docker Deployment
+## Deployment Architecture
 
-### Backend (`backend/Dockerfile`)
+**Backend** (`backend/Dockerfile`) — multi-stage build on `python:3.13-slim`. All heavy models (PaddleOCR, `all-MiniLM-L6-v2`, ChromaDB's embedding model) are downloaded at *build* time, not on first request — zero first-request latency, fully offline-capable from the first container start. Named volumes separate ML model weights (survive rebuilds) from runtime state (session, uploads, audit log, vector store).
 
-- Multi-stage build on `python:3.13-slim`
-- All heavy models downloaded at build time — PaddleOCR, sentence-transformers (`all-MiniLM-L6-v2`), ChromaDB embedding model
-- Zero first-request latency; fully offline-capable from the first container start
-- Named volumes:
-  - `backend-model-cache`, `backend-paddlex-cache` — ML model weights (survive rebuilds)
-  - `backend-session-state`, `backend-uploads`, `backend-audit-log`, `backend-chroma-db` — runtime state
+**Frontend** (`frontend/Dockerfile`) — multi-stage: Vite build in `node:20-alpine`, served by `nginx:alpine` with SPA fallback routing. `VITE_API_URL`/`VITE_SUPABASE_*` are baked into the JS bundle at build time.
 
-### Frontend (`frontend/Dockerfile`)
-
-- Multi-stage: Vite build in `node:20-alpine` served by `nginx:alpine`
-- SPA fallback routing via `nginx.conf`
-- `VITE_API_URL` / `VITE_SUPABASE_*` baked into the JS bundle at build time — rebuild required if changed
-
-### docker-compose.yml
-
-- Frontend container waits for backend healthcheck before starting
-- `docker compose down && up` preserves all in-progress session data, uploaded files, and the audit trail
-
----
-
-## Competitive Differentiation
-
-| Capability | IPO Sherpa | Generic AI Doc Tools | Manual Process |
-|---|---|---|---|
-| SEBI ICDR-specific knowledge | 55 clauses, SEBI corpus RAG | Generic LLM knowledge | Consultant memory |
-| OCR for scanned Indian statutory docs | 4-tier pipeline | Single OCR engine | Manual retyping |
-| Hallucination prevention | Digit-level verification | None | Human review |
-| Cross-document contradiction detection | 20+ checks with statute citations | None | Expensive legal review |
-| Blockchain tamper-evidence | Polygon Amoy + W3C VCs | None | None |
-| Merchant banker workflow | Section-by-section certification gate | None | Email chains |
-| Automated circular monitoring | Live SEBI feed + session-specific impact | None | Manual tracking |
-| Sector-specific KPI templates | 4 sectors (Mfg / NBFC / Services / Jewellery) | Generic fields | Manual selection |
-| Offline / airgapped mode | Full feature set, rule-based fallback | Cloud-dependent | Always |
-| Generated format | SEBI ICDR Schedule VI DOCX + ZIP | Generic PDF | Manual formatting |
-| Immutable audit trail | JSONL + on-chain anchoring | Basic logs | None |
-
-### Value Proposition by Stakeholder
-
-**For Founders**
-
-- Hours to a disclosure-ready draft vs. months of manual preparation
-- Every gap is clearly labelled with what is needed to resolve it — no mystery blanks
-- Dramatically reduces pre-banker legal and financial preparation costs
-
-**For Merchant Bankers**
-
-- Structured section-by-section certification, not document-level rubber-stamping
-- Contradiction issues surfaced before the banker review — not during it
-- Peer comparison and due-diligence Form A ready for sign-off on day one
-
-**For SEBI / Regulators**
-
-- Better-prepared filings: 55-requirement gap engine means fewer incomplete DRHPs
-- Immutable audit trail: every decision, edit, and certification is blockchain-anchored
-- Statutory role of merchant banker is architecturally preserved — no auto-filing
-
-### Scalability Architecture
-
-```
-                    Load Balancer
-                         |
-         +---------------+---------------+
-         |               |               |
-    FastAPI Pod 1   FastAPI Pod 2   FastAPI Pod N
-    (stateless)     (stateless)     (stateless)
-         |               |               |
-         +---------------+---------------+
-                         |
-              +----------+----------+
-              |           |          |
-         Supabase    ChromaDB    Polygon Amoy
-         (sessions)  (vectors)   (blockchain)
-```
-
-- **Horizontal scaling**: Stateless FastAPI pods behind a load balancer (session state in Supabase)
-- **Vector store**: ChromaDB persistent collection shared across pods
-- **Blockchain**: Shared smart contract — any pod can anchor or verify
-- **CDN-ready frontend**: Static nginx-served React bundle deployable to any CDN
+**Scaling path** — session state, when Supabase is configured, lives entirely outside the FastAPI process, so the backend is stateless by design: any number of API instances can sit behind a load balancer and share the same ChromaDB vector store and Polygon Amoy contract without coordination. Local-JSON mode (the zero-config default) trades that horizontal scalability for zero external dependencies — the right default for offline evaluation, not for production fleet deployment.
 
 ---
 
 ## SEBI TechSprint Problem Statement Mapping
 
-Access the live mapping at `/api/ps-mapping` after startup.
+Live mapping available at `/api/ps-mapping` at runtime.
 
 | PS Clause | Mandate | Implementation | Status |
 |---|---|---|---|
@@ -943,29 +569,23 @@ Access the live mapping at `/api/ps-mapping` after startup.
 | PS-6 | Hallucination prevention | Digit-level verification against fact store | Full |
 | PS-7 | CA/legal sign-off workflows | `source_hint: "manual"` + inline notes per field | Partial* |
 | PS-8 | Merchant banker certification | Section-by-section gate, export blocked until certified | Full |
-| PS-9 | Audit trail & tamper-evidence | Append-only JSONL + Polygon blockchain anchoring | Full |
+| PS-9 | Audit trail & tamper-evidence | Append-only JSONL + Polygon blockchain anchoring + structural PDF forensics | Full |
 | PS-10 | DigiLocker integration | Simulation endpoint (`/api/dpi/digilocker/simulate`) | Simulated* |
 | PS-11 | Regulatory circular monitoring | Live SEBI feed + session-specific impact analysis | Full |
 | PS-12 | Investor-protection NLP | Red-flag scanner, vague language detection, readability | Full |
-| PS-13 | Peer comparison & valuation | Auto-populated Basis of Issue Price section | Full |
+| PS-13 | Peer comparison & valuation | Schedule VI Basis-of-Issue-Price metrics via `/api/peer_comparison` | Full |
 
 *PS-7: CA certificate content requires a licensed CA — correctly refused to auto-fill, with a clear explanation why.
-
 *PS-10: Live DigiLocker API requires government-issued credentials — simulation demonstrates the integration flow accurately.
 
 ---
 
-## Statutory Role of SEBI Intermediaries
+<div align="center">
 
-IPO Sherpa is not a substitute for a SEBI-registered Category I Merchant Banker. The platform is designed to:
+### Statutory Role of SEBI Intermediaries
 
-1. **Accelerate** the drafting stage that precedes banker review
-2. **De-risk** that stage by catching 20+ contradiction classes before banker review begins
-3. **Preserve** the intermediary role — exports are gated behind section-by-section certification
-
-No DRHP can leave IPO Sherpa without a merchant banker explicit certification of every section. This is a hard architectural constraint — there is no API endpoint, no admin override, and no configuration flag that bypasses it.
-
+IPO Sherpa is not a substitute for a SEBI-registered Category I Merchant Banker. It **accelerates** the drafting stage that precedes banker review, **de-risks** that stage by catching 20+ contradiction classes before review begins, and **preserves** the intermediary role — no document leaves the platform without explicit, section-by-section banker certification. There is no API endpoint, no admin override, and no configuration flag that bypasses it.
 
 *Built for SEBI TechSprint 2026 — Making Indian Capital Markets More Accessible, Transparent, and Trustworthy.*
 
-*IPO Sherpa: From "thinking about an IPO" to disclosure-ready in hours.*
+</div>
