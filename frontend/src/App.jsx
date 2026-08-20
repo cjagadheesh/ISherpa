@@ -11,6 +11,7 @@ import Dashboard from './components/Dashboard';
 import Copilot from './components/Copilot';
 import BankerDashboard from './components/BankerDashboard';
 import AuditTrail from './components/AuditTrail';
+import JourneyProgress from './components/JourneyProgress';
 import { apiFetch } from './api';
 
 import { supabase } from './supabase';
@@ -1135,6 +1136,8 @@ export default function App({ user, onSignOut }) {
               </span>
             )}
           </div>
+
+          <JourneyProgress steps={steps} activeTab={activeTab} getStepStatus={getStepStatus} onNavigate={jumpTo} />
 
           {/* Quick switcher — real navigation over existing tabs, not a search backend */}
           <div ref={quickSwitchRef} className="hidden lg:block relative flex-1 max-w-xs">

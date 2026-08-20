@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
-  Eye, EyeOff, Loader2, X, ShieldCheck,
+  Eye, EyeOff, Loader2, X, ShieldCheck, ShieldAlert,
   BarChart3, Receipt, ScrollText, IdCard, BookOpen, Calculator, UserCog, Scale, LineChart, Sparkles, Clock,
 } from 'lucide-react';
 import Badge from './ui/Badge';
@@ -482,6 +482,16 @@ export default function Uploader({
                         className={`w-1.5 h-1.5 rounded-full shrink-0 ${extractionCompleted ? 'bg-emerald-500' : 'bg-amber-400'}`}
                         title={extractionCompleted ? 'Extracted — review required' : 'Manual review required'}
                       />
+                    )}
+                    {(uploadedFileObj?.forensics?.level === 'flag' || uploadedFileObj?.forensics?.level === 'review') && (
+                      <Badge
+                        variant={uploadedFileObj.forensics.level === 'flag' ? 'danger' : 'warning'}
+                        size="xs"
+                        icon={ShieldAlert}
+                        title={`Structural forensics: ${uploadedFileObj.forensics.summary}`}
+                      >
+                        {uploadedFileObj.forensics.level === 'flag' ? 'Verify source' : 'Review'}
+                      </Badge>
                     )}
                   </div>
                   <p className="text-[10.5px] text-gray-400 leading-snug truncate mt-0.5">

@@ -1,11 +1,14 @@
+import json
 import unittest
+from unittest.mock import MagicMock, patch
 from nlp_analyzer import (
     analyze_prospectus_narratives,
     nlp_semantic_match,
     nlp_extract_entities,
     nlp_assess_readability_and_quality,
     nlp_summarize_text,
-    nlp_analyze_full_session
+    nlp_analyze_full_session,
+    _NARRATIVE_SCAN_CACHE,
 )
 
 class NLPAnalyzerTests(unittest.TestCase):
@@ -26,6 +29,33 @@ class NLPAnalyzerTests(unittest.TestCase):
         res = analyze_prospectus_narratives({})
         self.assertEqual(res["status"], "success")
         self.assertIsInstance(res["red_flags"], list)
+
+    def test_narrative_llm_scan_is_cached_on_identical_content(self):
+        _NARRATIVE_SCAN_CACHE.clear()
+        mock_llm = MagicMock()
+        mock_llm.is_available.return_value = True
+        mock_llm.provider = "groq"
+        mock_llm.complete.return_value = json.dumps([])
+        form_data = {"internal_risks": "Raw material price volatility of key chemical inputs."}
+        with patch("nlp_analyzer.get_llm_client", return_value=mock_llm):
+            first = analyze_prospectus_narratives(form_data)
+            second = analyze_prospectus_narratives(dict(form_data))
+        self.assertEqual(first["source"], "llm_scan")
+        self.assertEqual(second["source"], "llm_scan")
+        self.assertEqual(mock_llm.complete.call_count, 1)
+        _NARRATIVE_SCAN_CACHE.clear()
+
+    def test_narrative_llm_scan_rescans_on_changed_content(self):
+        _NARRATIVE_SCAN_CACHE.clear()
+        mock_llm = MagicMock()
+        mock_llm.is_available.return_value = True
+        mock_llm.provider = "groq"
+        mock_llm.complete.return_value = json.dumps([])
+        with patch("nlp_analyzer.get_llm_client", return_value=mock_llm):
+            analyze_prospectus_narratives({"internal_risks": "Raw material price volatility."})
+            analyze_prospectus_narratives({"internal_risks": "A completely different risk narrative."})
+        self.assertEqual(mock_llm.complete.call_count, 2)
+        _NARRATIVE_SCAN_CACHE.clear()
 
     def test_nlp_semantic_match(self):
         # Legal suffix variation

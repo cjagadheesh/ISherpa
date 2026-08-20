@@ -10,18 +10,21 @@ Provider selection (.env):
     LLM_MODEL    = optional override; each provider has a sensible default
 
 Per-provider credentials:
-    groq      -> GROQ_API_KEY (+ optional GROQ_API_KEY_2 for failover — see below)
+    groq      -> GROQ_API_KEY (+ optional GROQ_API_KEY_2, _3, ... for a pool — see below)
     openai    -> OPENAI_API_KEY
     anthropic -> ANTHROPIC_API_KEY
     ollama    -> OLLAMA_BASE_URL (default http://localhost:11434/v1); no key needed
 
-Groq two-key failover:
-    If GROQ_API_KEY_2 is also set, a request that hits GROQ_API_KEY's rate
-    limit automatically retries once on GROQ_API_KEY_2, which then becomes
-    the active ("primary") key for subsequent requests. If GROQ_API_KEY_2
-    later rate-limits too, the retry falls back to GROQ_API_KEY again — the
-    two keys just swap primary/secondary roles on failure. Useful for
-    stretching a limited free-tier daily token quota across two accounts.
+Groq key pool:
+    Set GROQ_API_KEY_2, GROQ_API_KEY_3, ... (or a comma-separated
+    GROQ_API_KEYS) to add more keys to the pool. Each complete() call picks
+    the next key round-robin (not just on failure), so concurrent calls —
+    e.g. uploading several documents at once, each extracted in its own
+    background job — spread across keys instead of serializing behind one.
+    A call that still hits a rate limit retries on the remaining keys in the
+    pool before giving up. One key alone behaves exactly as before (no pool
+    overhead). Useful for stretching a limited free-tier daily token quota
+    across several accounts and for cutting wall-clock time on batch uploads.
 
 Usage:
     from llm_client import get_llm_client
@@ -37,6 +40,7 @@ Usage:
     )
 """
 
+import itertools
 import os
 import logging
 from typing import Dict, List, Optional
@@ -63,6 +67,37 @@ def _is_placeholder(key: str) -> bool:
     return any(marker in low for marker in _PLACEHOLDER_MARKERS)
 
 
+def _groq_key_pool() -> List[str]:
+    """Collects every configured Groq key: GROQ_API_KEY, GROQ_API_KEY_2, _3, ...
+    (open-ended, stops at the first missing number) plus a comma-separated
+    GROQ_API_KEYS if set. Order is preserved and duplicates are dropped so the
+    same key isn't ever double-counted in the pool.
+    """
+    keys: List[str] = []
+    first = os.getenv("GROQ_API_KEY", "")
+    if not _is_placeholder(first):
+        keys.append(first)
+    i = 2
+    while True:
+        k = os.getenv(f"GROQ_API_KEY_{i}", "")
+        if not k:
+            break
+        if not _is_placeholder(k):
+            keys.append(k)
+        i += 1
+    for k in os.getenv("GROQ_API_KEYS", "").split(","):
+        k = k.strip()
+        if k and not _is_placeholder(k):
+            keys.append(k)
+    seen = set()
+    deduped = []
+    for k in keys:
+        if k not in seen:
+            seen.add(k)
+            deduped.append(k)
+    return deduped
+
+
 class LLMClient:
     """Provider-agnostic chat-completion client.
 
@@ -80,8 +115,12 @@ class LLMClient:
         self.model = (model or os.getenv("LLM_MODEL", "").strip()) or DEFAULT_MODELS[self.provider]
         self._client = None
         self._init_error: Optional[str] = None
-        self._groq_keys: List[str] = []
-        self._groq_key_index: int = 0
+        # One pre-built client per Groq key (round-robin below picks an index
+        # into this list per call) — a list of independent client objects,
+        # not one shared mutable client, so concurrent calls from different
+        # background threads never race over which key is "currently active".
+        self._groq_clients: list = []
+        self._groq_round_robin = itertools.count()
         self._init_client()
 
     # ── Provider client construction ──────────────────────────────────────
@@ -90,14 +129,12 @@ class LLMClient:
         try:
             if self.provider == "groq":
                 from groq import Groq
-                self._groq_keys = [
-                    k for k in (os.getenv("GROQ_API_KEY", ""), os.getenv("GROQ_API_KEY_2", ""))
-                    if not _is_placeholder(k)
-                ]
-                if not self._groq_keys:
+                keys = _groq_key_pool()
+                if not keys:
                     self._init_error = "GROQ_API_KEY not configured"
                     return
-                self._client = Groq(api_key=self._groq_keys[self._groq_key_index])
+                self._groq_clients = [Groq(api_key=k) for k in keys]
+                self._client = self._groq_clients[0]
 
             elif self.provider == "openai":
                 from openai import OpenAI
@@ -163,8 +200,8 @@ class LLMClient:
                 # Local Ollama builds/models don't reliably honour response_format yet;
                 # JSON-mode callers already instruct the format in-prompt as a fallback.
                 kwargs["response_format"] = {"type": "json_object"}
-            if self.provider == "groq" and len(self._groq_keys) > 1:
-                return self._complete_groq_with_failover(kwargs)
+            if self.provider == "groq":
+                return self._complete_groq(kwargs)
             completion = self._client.chat.completions.create(**kwargs)
             return (completion.choices[0].message.content or "").strip()
 
@@ -186,34 +223,31 @@ class LLMClient:
 
         raise RuntimeError(f"Unsupported LLM provider: {self.provider}")
 
-    def _complete_groq_with_failover(self, kwargs: Dict) -> str:
-        """Two-key failover for Groq: on a rate-limit error, swap to the other
-        configured key and retry once. The key that just worked stays active
-        ("primary") for subsequent calls. If the second attempt also hits a
-        rate limit, both keys are exhausted — swap back to the original key
-        (so the next unrelated call starts there rather than the one that
-        just failed twice) and let the error propagate to the caller's
-        existing is_rate_limit_error handling.
+    def _complete_groq(self, kwargs: Dict) -> str:
+        """Round-robins across the Groq key pool: each call starts at the next
+        key in rotation (via an atomic counter, safe under concurrent calls
+        from different background threads — no shared "current key" state
+        gets mutated), so parallel calls spread across keys instead of
+        serializing behind one. A call that hits a rate limit retries on the
+        remaining keys in the pool, in rotation order, before giving up.
+        With a single key this degenerates to the old always-use-key-1
+        behaviour with no extra overhead.
         """
-        from groq import Groq
-        try:
-            completion = self._client.chat.completions.create(**kwargs)
-            return (completion.choices[0].message.content or "").strip()
-        except Exception as e:
-            if not is_rate_limit_error(e):
-                raise
-            fallback_index = (self._groq_key_index + 1) % len(self._groq_keys)
-            logger.warning(f"Groq key #{self._groq_key_index + 1} rate-limited; switching to key #{fallback_index + 1}.")
-            self._groq_key_index = fallback_index
-            self._client = Groq(api_key=self._groq_keys[self._groq_key_index])
+        n = len(self._groq_clients)
+        start = next(self._groq_round_robin) % n
+        last_exc: Optional[Exception] = None
+        for attempt in range(n):
+            idx = (start + attempt) % n
             try:
-                completion = self._client.chat.completions.create(**kwargs)
+                completion = self._groq_clients[idx].chat.completions.create(**kwargs)
                 return (completion.choices[0].message.content or "").strip()
-            except Exception as e2:
-                if is_rate_limit_error(e2):
-                    self._groq_key_index = (self._groq_key_index + 1) % len(self._groq_keys)
-                    self._client = Groq(api_key=self._groq_keys[self._groq_key_index])
-                raise e2
+            except Exception as e:
+                if not is_rate_limit_error(e):
+                    raise
+                last_exc = e
+                if n > 1:
+                    logger.warning(f"Groq key #{idx + 1} rate-limited; trying next key in pool.")
+        raise last_exc
 
 
 def is_rate_limit_error(exc: Exception) -> bool:

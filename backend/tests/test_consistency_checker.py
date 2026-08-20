@@ -3,7 +3,8 @@ from consistency_checker import (
     check_capital_structure, check_gstin_format, check_objects_vs_issue, check_pan_format,
     check_eps_consistency, check_face_value_vs_price_band, check_litigation_narrative_consistency,
     check_auditor_consistency, check_waca_date_plausibility, check_segment_reporting_note,
-    check_customer_concentration_consistency, run_all_consistency_checks,
+    check_customer_concentration_consistency, check_cash_flow_pat_conversion,
+    check_receivables_outpacing_revenue, run_all_consistency_checks,
 )
 
 class ConsistencyCheckerTests(unittest.TestCase):
@@ -86,5 +87,45 @@ class ConsistencyCheckerTests(unittest.TestCase):
     def test_customer_concentration_match_is_not_flagged(self):
         table = [{'customer_name': 'A', 'fy1_pct': 18.0}, {'customer_name': 'B', 'fy1_pct': 12.0}]
         self.assertIsNone(check_customer_concentration_consistency(30.0, table))
+
+    def test_weak_cash_flow_pat_conversion_is_flagged(self):
+        merged = {
+            'cash_flow_operating': [{'fy': 'FY26', 'value': 2.0}],
+            'pat': [{'fy': 'FY26', 'value': 10.0}],  # CFO is 20% of PAT
+        }
+        flag = check_cash_flow_pat_conversion(merged)
+        self.assertEqual(flag['id'], 'cash_flow_pat_conversion_weak')
+    def test_healthy_cash_flow_pat_conversion_is_not_flagged(self):
+        merged = {
+            'cash_flow_operating': [{'fy': 'FY26', 'value': 9.0}],
+            'pat': [{'fy': 'FY26', 'value': 10.0}],  # CFO is 90% of PAT
+        }
+        self.assertIsNone(check_cash_flow_pat_conversion(merged))
+    def test_negative_pat_is_not_flagged(self):
+        merged = {
+            'cash_flow_operating': [{'fy': 'FY26', 'value': -1.0}],
+            'pat': [{'fy': 'FY26', 'value': -5.0}],
+        }
+        self.assertIsNone(check_cash_flow_pat_conversion(merged))
+
+    def test_receivables_outpacing_revenue_is_flagged(self):
+        merged = {
+            'trade_receivables': [{'fy': 'FY26', 'value': 40.0}, {'fy': 'FY25', 'value': 20.0}],   # +100%
+            'revenue_from_operations': [{'fy': 'FY26', 'value': 110.0}, {'fy': 'FY25', 'value': 100.0}],  # +10%
+        }
+        flag = check_receivables_outpacing_revenue(merged)
+        self.assertEqual(flag['id'], 'receivables_outpacing_revenue')
+    def test_receivables_growth_tracking_revenue_is_not_flagged(self):
+        merged = {
+            'trade_receivables': [{'fy': 'FY26', 'value': 22.0}, {'fy': 'FY25', 'value': 20.0}],   # +10%
+            'revenue_from_operations': [{'fy': 'FY26', 'value': 110.0}, {'fy': 'FY25', 'value': 100.0}],  # +10%
+        }
+        self.assertIsNone(check_receivables_outpacing_revenue(merged))
+    def test_receivables_check_needs_two_years_of_both_fields(self):
+        merged = {
+            'trade_receivables': [{'fy': 'FY26', 'value': 40.0}],  # only 1 year
+            'revenue_from_operations': [{'fy': 'FY26', 'value': 110.0}, {'fy': 'FY25', 'value': 100.0}],
+        }
+        self.assertIsNone(check_receivables_outpacing_revenue(merged))
 
 if __name__ == '__main__': unittest.main()

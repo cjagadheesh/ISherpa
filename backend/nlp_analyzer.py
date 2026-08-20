@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 import re
@@ -351,6 +352,23 @@ def nlp_analyze_full_session(session_data: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+# ── LLM narrative-scan cache ─────────────────────────────────────────────────
+# validate_session_data() (and therefore this scan) runs on nearly every Wizard
+# edit, every Copilot message, and every fix-suggestion lookup — but the
+# narrative fields it scans rarely change between those calls. Without this
+# cache, an unrelated form edit re-triggered a full LLM call here every time,
+# which was a real contributor to exhausting the daily Groq token quota mid-session.
+# Keyed by a hash of the actual narrative text scanned, so any real edit still
+# gets a fresh scan; only genuinely-unchanged content is served from cache.
+_NARRATIVE_SCAN_CACHE: Dict[str, Dict[str, Any]] = {}
+_NARRATIVE_SCAN_CACHE_MAX_SIZE = 50
+
+
+def _narrative_scan_cache_key(active_narratives: Dict[str, str]) -> str:
+    combined = "\x1f".join(f"{k}={v}" for k, v in sorted(active_narratives.items()))
+    return hashlib.sha256(combined.encode("utf-8")).hexdigest()
+
+
 def analyze_prospectus_narratives(form_data: Dict[str, Any]) -> Dict[str, Any]:
     """Scans prospectus narrative fields for investor protection red flags.
 
@@ -450,6 +468,11 @@ def analyze_prospectus_narratives(form_data: Dict[str, Any]) -> Dict[str, Any]:
             "scan_summary": f"Scanned narratives. Found {len(flags)} red flag(s)." if flags else "Narrative disclosures are clear and compliant."
         }
 
+    cache_key = _narrative_scan_cache_key(active_narratives)
+    cached = _NARRATIVE_SCAN_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     try:
         prompt = f"""
         You are a senior SEBI Compliance & Investor Protection Auditor. Analyze these draft SME IPO prospectus narrative sections for investor protection risks:
@@ -494,7 +517,7 @@ def analyze_prospectus_narratives(form_data: Dict[str, Any]) -> Dict[str, Any]:
         high_count = sum(1 for f in parsed_flags if f.get("severity") == "HIGH")
         score = max(40, 100 - (high_count * 12 + len(parsed_flags) * 4))
 
-        return {
+        result = {
             "status": "success",
             "source": "llm_scan",
             "scanned_fields": list(active_narratives.keys()),
@@ -505,6 +528,10 @@ def analyze_prospectus_narratives(form_data: Dict[str, Any]) -> Dict[str, Any]:
             "nlp_quality": nlp_quality,
             "scan_summary": f"{len(parsed_flags)} investor-protection flags detected via AI narrative scan."
         }
+        if len(_NARRATIVE_SCAN_CACHE) >= _NARRATIVE_SCAN_CACHE_MAX_SIZE:
+            _NARRATIVE_SCAN_CACHE.pop(next(iter(_NARRATIVE_SCAN_CACHE)))
+        _NARRATIVE_SCAN_CACHE[cache_key] = result
+        return result
     except Exception as e:
         logger.error(f"LLM ({llm.provider}) red flag scan failed: {e}. Falling back to default flags.")
         return {

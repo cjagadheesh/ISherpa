@@ -943,6 +943,7 @@ export default function Wizard({ formData, onChange, activeTab, onNext, onPrev, 
                 <div>{renderRows('nav_per_share', 'NAV per Share (₹)', 'Net Worth ÷ number of equity shares outstanding, 3-year restated.', FY_TABLE_COLUMNS, { addLabel: 'Add year' })}</div>
               </div>
               {renderRows('total_borrowings', 'Total Borrowings (₹ Cr)', 'SEBI ICDR Sch VI Part B — 3-year restated total borrowings.', FY_TABLE_COLUMNS, { addLabel: 'Add year' })}
+              {renderRows('trade_receivables', 'Trade Receivables (₹ Cr)', 'Restated balance sheet — trade receivables / sundry debtors, 3-year.', FY_TABLE_COLUMNS, { addLabel: 'Add year' })}
 
               <SubGroupHeader icon={DollarSign} label="Cash Flow Statement (3-Year)" />
               {renderRows('cash_flow_operating', 'Net Cash from Operating Activities (₹ Cr)', '', FY_TABLE_COLUMNS, { addLabel: 'Add year' })}

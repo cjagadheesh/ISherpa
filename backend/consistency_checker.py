@@ -238,6 +238,35 @@ FALLBACK_REASONING = {
             "3. Evaluated Variance: The two figures differ by more than the acceptable rounding tolerance.",
             "4. Therefore: Reconcile the Risk Factors concentration percentage with the Top-5 Customer table in the Business Overview section."
         ]
+    },
+    "cash_flow_pat_conversion_weak": {
+        "explanation": (
+            "Operating cash flow (₹{cfo} Cr) is only {ratio}% of reported Profit After Tax (₹{pat} Cr) for {fy}. "
+            "Profit not backed by cash collection is one of the first things a merchant banker or exchange reviewer "
+            "questions before an SME IPO."
+        ),
+        "reasoning_steps": [
+            "1. Extracted values: {fy} Cash Flow from Operating Activities = ₹{cfo} Cr, Profit After Tax = ₹{pat} Cr.",
+            "2. Earnings-Quality Check: Cash Flow ÷ PAT = {ratio}%.",
+            "3. Evaluated Threshold: A conversion ratio below 50% suggests profit is not yet being realised as cash — "
+            "e.g. revenue booked but not collected, or non-cash accounting adjustments inflating PAT.",
+            "4. Therefore: Reconcile the gap with a receivables ageing schedule or an auditor's note on cash conversion "
+            "before this is questioned in review."
+        ]
+    },
+    "receivables_outpacing_revenue": {
+        "explanation": (
+            "Trade receivables grew {recv_growth}% year-over-year while revenue from operations grew only "
+            "{rev_growth}% ({fy}). Receivables consistently outrunning sales growth can indicate slower collections "
+            "or revenue recognised before it is actually collectible."
+        ),
+        "reasoning_steps": [
+            "1. Extracted values: {fy} Trade Receivables growth = {recv_growth}%, Revenue from Operations growth = {rev_growth}%.",
+            "2. Earnings-Quality Check: Receivables growth exceeds revenue growth by {gap} percentage points.",
+            "3. Evaluated Threshold: A gap this wide, on a meaningful receivables base, is a common signal reviewers "
+            "probe for collection quality or channel-stuffing.",
+            "4. Therefore: Disclose any change in credit terms and provide a debtor ageing schedule if this gap is genuine."
+        ]
     }
 }
 
@@ -321,6 +350,23 @@ def _latest_fy_value(merged: Dict[str, Any], key: str) -> Optional[float]:
         return None
     try:
         return float(str(val).replace("₹", "").replace(",", "").strip())
+    except (ValueError, TypeError):
+        return None
+
+
+def _prior_fy_value(merged: Dict[str, Any], key: str) -> Optional[float]:
+    """Same as _latest_fy_value but reads the second-latest year (index 1) of
+    an FY-restated table — used for year-over-year comparisons. Returns None
+    for legacy scalar sessions, which have no prior year to compare against.
+    """
+    val = merged.get(key)
+    if not isinstance(val, list) or len(val) < 2 or not isinstance(val[1], dict):
+        return None
+    raw = val[1].get("value")
+    if raw is None:
+        return None
+    try:
+        return float(str(raw).replace("₹", "").replace(",", "").strip())
     except (ValueError, TypeError):
         return None
 
@@ -1006,6 +1052,96 @@ def check_customer_concentration_consistency(customer_concentration_pct: Optiona
     }
 
 
+def check_cash_flow_pat_conversion(merged: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Earnings-quality check: latest-year operating cash flow should be a
+    reasonable fraction of reported PAT. Profit that isn't backed by cash
+    collection is a standard first question in merchant-banker/exchange
+    review — this doesn't accuse anyone of anything, it just surfaces the
+    same ratio a reviewer would compute anyway, before filing rather than after.
+    """
+    cfo = _latest_fy_value(merged, "cash_flow_operating")
+    pat = _latest_fy_value(merged, "pat")
+    if cfo is None or pat is None or pat <= 0:
+        return None
+
+    ratio_pct = round((cfo / pat) * 100, 1)
+    if ratio_pct >= 50.0:  # own threshold — a reviewer's rough sniff-test, not a statutory cutoff
+        return None
+
+    pat_table = merged.get("pat")
+    fy = pat_table[0].get("fy", "the latest year") if isinstance(pat_table, list) and pat_table else "the latest year"
+
+    cot_res = get_explanation_and_cot("cash_flow_pat_conversion_weak", {
+        "cfo": round(cfo, 2),
+        "pat": round(pat, 2),
+        "ratio": ratio_pct,
+        "fy": fy,
+    })
+    return {
+        "id": "cash_flow_pat_conversion_weak",
+        "section_id": "financials",
+        "related_fields": ["cash_flow_operating", "pat"],
+        "title": "Operating Cash Flow Weak Relative to Reported Profit",
+        "description": cot_res["explanation"],
+        "reasoning_steps": cot_res["reasoning_steps"],
+        "severity": "medium",
+        "blocking": False,
+        "sebi_ref": "SEBI ICDR Schedule VI Part A — Restated Financial Information (earnings-quality review practice)",
+        "fix_steps": [
+            "Verify the operating cash flow and PAT figures against the restated cash flow statement.",
+            "If genuine, prepare a receivables ageing schedule or an auditor's note explaining the gap (e.g. one-off non-cash items, a large late-year sale) ahead of banker review.",
+        ],
+    }
+
+
+def check_receivables_outpacing_revenue(merged: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Earnings-quality check: trade receivables growing meaningfully faster
+    than revenue can indicate slowing collections or revenue recognised
+    before it's actually collectible — a common reviewer red flag.
+    """
+    recv_latest = _latest_fy_value(merged, "trade_receivables")
+    recv_prior = _prior_fy_value(merged, "trade_receivables")
+    rev_latest = _latest_fy_value(merged, "revenue_from_operations")
+    rev_prior = _prior_fy_value(merged, "revenue_from_operations")
+    if None in (recv_latest, recv_prior, rev_latest, rev_prior) or recv_prior <= 0 or rev_prior <= 0:
+        return None
+
+    recv_growth = ((recv_latest - recv_prior) / recv_prior) * 100
+    rev_growth = ((rev_latest - rev_prior) / rev_prior) * 100
+    gap = recv_growth - rev_growth
+
+    # Own thresholds: only flag a real, meaningful divergence — receivables must
+    # themselves have grown by a non-trivial amount (avoids flagging noise off a
+    # tiny base) AND outpace revenue growth by a wide margin.
+    if recv_growth < 15.0 or gap < 20.0:
+        return None
+
+    rev_table = merged.get("revenue_from_operations")
+    fy = rev_table[0].get("fy", "the latest year") if isinstance(rev_table, list) and rev_table else "the latest year"
+
+    cot_res = get_explanation_and_cot("receivables_outpacing_revenue", {
+        "recv_growth": round(recv_growth, 1),
+        "rev_growth": round(rev_growth, 1),
+        "gap": round(gap, 1),
+        "fy": fy,
+    })
+    return {
+        "id": "receivables_outpacing_revenue",
+        "section_id": "financials",
+        "related_fields": ["trade_receivables", "revenue_from_operations"],
+        "title": "Trade Receivables Growing Faster Than Revenue",
+        "description": cot_res["explanation"],
+        "reasoning_steps": cot_res["reasoning_steps"],
+        "severity": "medium",
+        "blocking": False,
+        "sebi_ref": "SEBI ICDR Schedule VI Part A — Restated Financial Information (earnings-quality review practice)",
+        "fix_steps": [
+            "Verify both years' trade receivables and revenue figures against the restated financial statements.",
+            "If genuine, disclose any change in customer credit terms and provide a top debtor ageing breakup ahead of banker review.",
+        ],
+    }
+
+
 # ── Master runner ────────────────────────────────────────────────────────────
 
 def run_all_consistency_checks(
@@ -1122,7 +1258,17 @@ def run_all_consistency_checks(
     if flag:
         flags.append(flag)
 
-    # 17. Integrated Financial Ratio Anomaly Detection
+    # 17. Earnings quality — operating cash flow vs reported profit
+    flag = check_cash_flow_pat_conversion(merged)
+    if flag:
+        flags.append(flag)
+
+    # 18. Earnings quality — trade receivables growth vs revenue growth
+    flag = check_receivables_outpacing_revenue(merged)
+    if flag:
+        flags.append(flag)
+
+    # 19. Integrated Financial Ratio Anomaly Detection
     try:
         from financial_ratio_checker import calculate_and_audit_ratios
         ratio_res = calculate_and_audit_ratios(merged)
@@ -1130,7 +1276,7 @@ def run_all_consistency_checks(
     except Exception as e:
         logger.warning(f"Financial ratio anomaly check skipped: {e}")
 
-    # 18. Integrated Narrative Quality & Investor Protection Compliance Check (NLP-driven under the hood)
+    # 20. Integrated Narrative Quality & Investor Protection Compliance Check (NLP-driven under the hood)
     narrative_flags = check_narrative_quality(merged)
     flags.extend(narrative_flags)
 

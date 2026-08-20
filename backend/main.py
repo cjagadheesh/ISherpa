@@ -14,7 +14,7 @@ from typing import Dict, Any, List, Optional
 from fastapi import Depends, FastAPI, Header, UploadFile, File, Form, HTTPException, Request as FastAPIRequest
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from starlette.background import BackgroundTask
+from starlette.background import BackgroundTasks
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -39,6 +39,16 @@ try:
 except ImportError:
     BLOCKCHAIN_AVAILABLE = False
     logger.warning("blockchain.py not found — blockchain features disabled.")
+
+# Structural PDF forensics (see doc_forensics.py) — independent of blockchain
+# anchoring above: anchoring proves the file hasn't changed *since* upload,
+# this looks at what the file's own structure suggests about *before* upload.
+try:
+    from doc_forensics import analyze_document_forensics
+    DOC_FORENSICS_AVAILABLE = True
+except ImportError:
+    DOC_FORENSICS_AVAILABLE = False
+    logger.warning("doc_forensics.py not found — structural document forensics disabled.")
 
 # Import our custom modules
 try:
@@ -765,6 +775,17 @@ async def upload_document(
                 except Exception as bc_err:
                     logger.warning(f"Blockchain anchoring skipped: {bc_err}")
 
+            # ── Structural forensics ── independent of blockchain: the anchor
+            # above proves the file hasn't changed since this exact moment;
+            # this looks at what the file's own bytes suggest about its history
+            # before it ever got here (see doc_forensics.py's module docstring).
+            forensics_record = None
+            if DOC_FORENSICS_AVAILABLE:
+                try:
+                    forensics_record = await asyncio.to_thread(analyze_document_forensics, file_path)
+                except Exception as forensics_err:
+                    logger.warning(f"Document forensics skipped: {forensics_err}")
+
             if job_manager:
                 job_manager.update_job(job_id, progress=45, stage="Performing OCR text extraction & tabular analysis...")
 
@@ -824,6 +845,14 @@ async def upload_document(
                         "tx_hash": blockchain_record.get("tx_hash"),
                         "explorer_url": blockchain_record.get("explorer_url"),
                         "network": blockchain_record.get("network"),
+                    }
+
+                if forensics_record and forensics_record.get("applicable"):
+                    file_meta["forensics"] = {
+                        "score": forensics_record.get("score"),
+                        "level": forensics_record.get("level"),
+                        "summary": forensics_record.get("summary"),
+                        "signals": forensics_record.get("signals"),
                     }
 
                 session["uploaded_files"] = [f for f in session["uploaded_files"] if f.get("type") != doc_type]
@@ -904,43 +933,47 @@ async def generate_draft(user: Dict[str, Any] = Depends(get_current_user)):
         output_path = os.path.join(tempfile.gettempdir(), f"{user['id']}-{uuid.uuid4().hex}-{output_filename}")
         
         await asyncio.to_thread(generate_draft_docx, session, schema, output_path)
-        
+
         if not os.path.exists(output_path):
             raise HTTPException(status_code=500, detail="Draft prospectus file was not generated.")
 
-        # ── Blockchain: seal the generated prospectus ────────────────────────
-        blockchain_seal = None
+        # ── Blockchain sealing runs AFTER the response is already on its way,
+        # not before. generate_draft_docx above is fast (well under a second —
+        # it's just formatting data already in the session), but sealing is a
+        # live testnet transaction that can block for up to ~90s per attempt
+        # (wait_for_transaction_receipt) plus retry backoff, and can fail
+        # outright if the anchoring wallet runs low on gas (hit for real
+        # earlier this session). None of that should make the user wait for
+        # — or lose — a document that's already sitting on disk ready to go.
+        # The seal is a supplementary tamper-evidence record, not something
+        # needed synchronously to hand over the file, and the frontend never
+        # reads the X-Blockchain-* headers this endpoint used to attach —
+        # nothing downstream depended on the seal being ready before the response.
+        tasks = BackgroundTasks()
         if BLOCKCHAIN_AVAILABLE:
-            try:
-                with open(output_path, "rb") as f:
-                    docx_bytes = f.read()
-                draft_hash = compute_sha256_bytes(docx_bytes)
-                company_name = session.get("form_data", {}).get("company_name", "Unknown Company")
-                # Off the event loop: seal_prospectus can block for up to ~90s
-                # per attempt (wait_for_transaction_receipt) plus retry backoff.
-                blockchain_seal = await asyncio.to_thread(
-                    seal_prospectus, draft_hash=draft_hash, company_name=company_name
-                )
-                logger.info(
-                    f"Prospectus sealed [{blockchain_seal.get('mode','?')}] "
-                    f"company={company_name} hash={draft_hash[:18]}..."
-                )
-            except Exception as bc_err:
-                logger.warning(f"Prospectus blockchain seal skipped: {bc_err}")
-        # ────────────────────────────────────────────────────────────────────
+            with open(output_path, "rb") as f:
+                draft_hash = compute_sha256_bytes(f.read())
+            company_name = session.get("form_data", {}).get("company_name", "Unknown Company")
 
-        response = FileResponse(
+            def _seal_in_background(draft_hash=draft_hash, company_name=company_name):
+                try:
+                    result = seal_prospectus(draft_hash=draft_hash, company_name=company_name)
+                    logger.info(
+                        f"Prospectus sealed [{result.get('mode','?')}] "
+                        f"company={company_name} hash={draft_hash[:18]}..."
+                    )
+                except Exception as bc_err:
+                    logger.warning(f"Prospectus blockchain seal skipped: {bc_err}")
+
+            tasks.add_task(_seal_in_background)
+        tasks.add_task(os.remove, output_path)
+
+        return FileResponse(
             path=output_path,
             filename=output_filename,
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            background=BackgroundTask(os.remove, output_path)
+            background=tasks,
         )
-        # Attach blockchain seal metadata in response headers if available
-        if blockchain_seal:
-            response.headers["X-Blockchain-TxHash"]     = blockchain_seal.get("tx_hash", "")
-            response.headers["X-Blockchain-Mode"]       = blockchain_seal.get("mode", "")
-            response.headers["X-Blockchain-ExplorerUrl"] = blockchain_seal.get("explorer_url", "")
-        return response
     except Exception as e:
         logger.error(f"Prospectus generation failed: {e}")
         import traceback
