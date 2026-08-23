@@ -11,7 +11,6 @@ import Dashboard from './components/Dashboard';
 import Copilot from './components/Copilot';
 import BankerDashboard from './components/BankerDashboard';
 import AuditTrail from './components/AuditTrail';
-import JourneyProgress from './components/JourneyProgress';
 import { apiFetch } from './api';
 
 import { supabase } from './supabase';
@@ -207,9 +206,21 @@ export default function App({ user, onSignOut }) {
 
 
   const handleReset = async () => {
+    // Closes the confirmation panel the moment the user answers "yes" —
+    // its job is done once they've confirmed, so it shouldn't stay open
+    // waiting on a network round-trip. Previously this only happened after
+    // the API call succeeded, so a failed/slow request (backend down,
+    // network hiccup) left the panel stuck open with no visible feedback,
+    // only closable via Cancel.
+    setConfirmReset(false);
     try {
       setLoading(true);
-      await authFetch('/api/session/reset', { method: 'POST' });
+      const res = await authFetch('/api/session/reset', { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        alert(`Reset failed: ${err.detail || res.statusText}`);
+        return;
+      }
       const emptySession = {
         form_data: {},
         extracted_data: {
@@ -224,10 +235,10 @@ export default function App({ user, onSignOut }) {
       setSessionData(emptySession);
       setValidationResults(null);
       setRedFlagResults(null);
-      setConfirmReset(false);
       await validateSession();
     } catch (err) {
       console.error('Failed to reset workspace:', err);
+      alert('Failed to reset workspace. Make sure the backend is running.');
     } finally {
       setLoading(false);
     }
@@ -1136,8 +1147,6 @@ export default function App({ user, onSignOut }) {
               </span>
             )}
           </div>
-
-          <JourneyProgress steps={steps} activeTab={activeTab} getStepStatus={getStepStatus} onNavigate={jumpTo} />
 
           {/* Quick switcher — real navigation over existing tabs, not a search backend */}
           <div ref={quickSwitchRef} className="hidden lg:block relative flex-1 max-w-xs">

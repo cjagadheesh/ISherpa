@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flatpak-spawn --host bash -c \"ps aux | grep 'docker push' | grep -v grep\")",
+      "Bash(flatpak-spawn *)",
+      "Bash(python3 *)"
+    ]
+  }
+}

@@ -48,7 +48,7 @@ from typing import Dict, List, Optional
 logger = logging.getLogger("sebi-ipo-generator.llm_client")
 
 DEFAULT_MODELS = {
-    "groq": "llama-3.3-70b-versatile",
+    "groq": "openai/gpt-oss-120b",
     "openai": "gpt-4o-mini",
     "anthropic": "claude-sonnet-4-5",
     "ollama": "llama3.1:8b-instruct",
