@@ -205,44 +205,47 @@ export default function App({ user, onSignOut }) {
 
 
 
-  const handleReset = async () => {
-    // Closes the confirmation panel the moment the user answers "yes" —
-    // its job is done once they've confirmed, so it shouldn't stay open
-    // waiting on a network round-trip. Previously this only happened after
-    // the API call succeeded, so a failed/slow request (backend down,
-    // network hiccup) left the panel stuck open with no visible feedback,
-    // only closable via Cancel.
+const handleReset = async () => {
     setConfirmReset(false);
+
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = null;
+
     try {
-      setLoading(true);
-      const res = await authFetch('/api/session/reset', { method: 'POST' });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
-        alert(`Reset failed: ${err.detail || res.statusText}`);
-        return;
-      }
-      const emptySession = {
-        form_data: {},
-        extracted_data: {
-          financials: {},
-          gst: {},
-          incorporation: {},
-          compliance: {}
-        },
-        uploaded_files: []
-      };
-      sessionDataRef.current = emptySession;
-      setSessionData(emptySession);
-      setValidationResults(null);
-      setRedFlagResults(null);
-      await validateSession();
+        setLoading(true);
+
+        const res = await authFetch('/api/session/reset', {
+            method: 'POST'
+        });
+
+        if (!res.ok) {
+            return;
+        }
+
+        const emptySession = {
+            form_data: {},
+            extracted_data: {
+                financials: {},
+                gst: {},
+                incorporation: {},
+                compliance: {}
+            },
+            uploaded_files: []
+        };
+
+        sessionDataRef.current = emptySession;
+        setSessionData(emptySession);
+        setValidationResults(null);
+        setRedFlagResults(null);
+
+        await validateSession();
+
     } catch (err) {
-      console.error('Failed to reset workspace:', err);
-      alert('Failed to reset workspace. Make sure the backend is running.');
+        console.error('Failed to reset workspace:', err);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
 
   const handleFormChange = (key, value) => {
